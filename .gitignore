@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+logs/
+uploads/
+cookies.txt
+server.log
+server.err
+server_*.log
+server_*.txt
+
+# Build çıktıları — `npm run build` ile üretilir
+public/js/
+
+# TypeScript map dosyaları
+*.js.map
