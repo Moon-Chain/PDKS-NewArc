@@ -287,7 +287,7 @@ Alpine.data('leavesPage', () => ({
           <button class="lv-modal-close" id="em-close">${I_X}</button>
         </div>
         <form id="em-form" style="display:flex;flex-direction:column;gap:16px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="lv-grid-2">
             <div class="lv-field">
               <label class="lv-label">Başlangıç</label>
               <input class="lv-input" name="start_date" type="date" required value="${row.start_date.split('T')[0]}" />
@@ -495,7 +495,7 @@ export class LeavesPage extends BasePage {
                     <option value="excuse">Mazeret İzni</option>
                   </select>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="lv-grid-2">
                   <div class="lv-field">
                     <label class="lv-label">Başlangıç</label>
                     <input class="lv-input" type="date" required
@@ -531,7 +531,7 @@ export class LeavesPage extends BasePage {
                 <span style="color:#3b82f6">${I_PLUS}</span> Fazla Mesai Talebi
               </h3>
               <form @submit.prevent="submitOt()" style="display:flex;flex-direction:column;gap:16px">
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                <div class="lv-grid-3">
                   <div class="lv-field">
                     <label class="lv-label">Tarih</label>
                     <input class="lv-input" type="date" required x-model="otForm.date" />

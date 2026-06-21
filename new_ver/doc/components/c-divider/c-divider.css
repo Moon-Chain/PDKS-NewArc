@@ -1,0 +1,33 @@
+/* c-divider: etiketli veya düz yatay ayırıcı */
+
+.c-divider {
+    display: block;
+    height: 1px;
+    background-color: var(--c-border);
+    margin: var(--c-space-3) 0;
+    border: none;
+}
+
+.c-divider--labeled {
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+    background: none;
+    height: auto;
+    margin: var(--c-space-3) 0;
+}
+
+.c-divider--labeled::before,
+.c-divider--labeled::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--c-border);
+}
+
+.c-divider__label {
+    font-size: 0.8rem;
+    color: var(--c-text-muted);
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+}

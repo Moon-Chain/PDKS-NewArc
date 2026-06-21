@@ -1,0 +1,116 @@
+/* c-banner: sayfa üstü duyuru çubuğu (deprecation, beta, breaking change vb.) */
+
+.c-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+    padding: 0.6rem var(--c-space-3);
+    font-size: var(--c-font-size-sm);
+    line-height: 1.5;
+    border-bottom: 1px solid transparent;
+}
+
+.c-banner[hidden] {
+    display: none;
+}
+
+.c-banner__icon {
+    flex-shrink: 0;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1;
+    width: 1.1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.c-banner__text {
+    flex: 1;
+}
+
+.c-banner__text a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.c-banner__close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.55;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--c-radius-sm);
+    transition: opacity 0.12s, background 0.12s;
+    font-family: inherit;
+}
+
+.c-banner__close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, .08);
+}
+
+/* ── Info ── */
+.c-banner--info {
+    background: #e8f0fe;
+    color: #1a4a8a;
+    border-color: #b3cef5;
+}
+[data-theme="dark"] .c-banner--info {
+    background: #0d2040;
+    color: #7ab4f0;
+    border-color: #1a3a6a;
+}
+
+/* ── Warning ── */
+.c-banner--warning {
+    background: #fef9e7;
+    color: #7a4f00;
+    border-color: #fde68a;
+}
+[data-theme="dark"] .c-banner--warning {
+    background: #2a1e00;
+    color: #f0c040;
+    border-color: #5a3e00;
+}
+
+/* ── Danger ── */
+.c-banner--danger {
+    background: #fef2f2;
+    color: #8b1a1a;
+    border-color: #fcc;
+}
+[data-theme="dark"] .c-banner--danger {
+    background: #2a0a0a;
+    color: #ef8080;
+    border-color: #5a1818;
+}
+
+/* ── Success ── */
+.c-banner--success {
+    background: #f0fdf4;
+    color: #155a28;
+    border-color: #a5d6a7;
+}
+[data-theme="dark"] .c-banner--success {
+    background: #092010;
+    color: #6fcf85;
+    border-color: #1a5428;
+}
+
+/* ── Beta ── */
+.c-banner--beta {
+    background: #f5f0ff;
+    color: #4a1a8c;
+    border-color: #d0b0f5;
+}
+[data-theme="dark"] .c-banner--beta {
+    background: #180a2d;
+    color: #c090f0;
+    border-color: #3a1a6e;
+}

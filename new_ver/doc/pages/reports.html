@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raporlar — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="reports" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Raporlar"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Raporlar</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/reports</code>
+                </p>
+                <p>
+                    Raporlar modülü, devam ve izin verilerini
+                    <c-tooltip text="Excel (.xlsx) — Microsoft Excel dosya formatı. PDKS'te ExcelJS kütüphanesiyle sunucu tarafında üretilir; istemci doğrudan dosyayı indirir." position="top"><span class="term">Excel (.xlsx)</span></c-tooltip>
+                    formatında indirilebilir hale getirir. Raporlar sunucu tarafında
+                    <c-tooltip text="ExcelJS — Node.js için Excel dosyası oluşturan kütüphane. Hücreler, sütun genişlikleri, renk formatlamaları ile profesyonel görünümlü tablolar üretir." position="top"><span class="term">ExcelJS</span></c-tooltip>
+                    ile üretilir; istemciye binary akışı olarak gönderilir.
+                </p>
+
+                <c-callout variant="info" title="Denetim Logu">
+                    Her rapor indirme işlemi, <code>audit_log</code> tablosuna
+                    <c-tooltip text="Audit Log — sistemde kimin ne zaman ne yaptığını kaydeden denetim günlüğü. Rapor indirmeleri de buraya düşer; hangi kullanıcının hangi ay raporunu indirdiği izlenebilir." position="right"><span class="term">audit_log</span></c-tooltip>
+                    tablosuna <code>report_download</code> aksiyonu olarak kaydedilir.
+                </c-callout>
+
+                <h2>Devam Raporu</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/reports/excel/attendance" summary="Aylık devam kaydını Excel dosyası olarak indir">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "month",  "type": "string", "required": true,  "desc": "Rapor ayı, YYYY-MM formatında (örn. 2026-06)." },
+                            { "name": "userId", "type": "UUID",   "required": false, "desc": "Belirli bir kullanıcının raporu (yalnızca admin/mudur kullanabilir). Belirtilmezse tüm şirket raporlanır." }
+                        ]
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="success" title="Yanıt formatı">
+                    Yanıt JSON değil, doğrudan binary dosya akışıdır:
+                    <ul>
+                        <li><strong>Content-Type:</strong> <code>application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</code></li>
+                        <li><strong>Content-Disposition:</strong> <code>attachment; filename="devam-raporu-2026-06.xlsx"</code></li>
+                    </ul>
+                    Tarayıcı bu yanıtı otomatik olarak dosya olarak indirir.
+                </c-callout>
+
+                <h3>Devam Raporu Excel Sütunları</h3>
+                <table>
+                    <thead><tr><th>Sütun Adı</th><th>İçeriği</th></tr></thead>
+                    <tbody>
+                        <tr><td>Personel Adı</td><td>Çalışanın ad soyadı.</td></tr>
+                        <tr><td>Sicil No</td><td>Çalışanın sicil numarası (<code>personnel_id</code>).</td></tr>
+                        <tr><td>Tarih</td><td>Kayıt tarihi (GG/AA/YYYY).</td></tr>
+                        <tr><td>Giriş Saati</td><td>O günkü ilk giriş (<code>type = in</code>) zamanı.</td></tr>
+                        <tr><td>Çıkış Saati</td><td>O günkü son çıkış (<code>type = out</code>) zamanı.</td></tr>
+                        <tr><td>Toplam Süre</td><td>Çıkış - Giriş farkından hesaplanan net çalışma süresi (SS:DD formatında).</td></tr>
+                        <tr><td>Uzaktan Giriş</td><td>Giriş uzaktan yapıldıysa "Evet", ofisten yapıldıysa "Hayır".</td></tr>
+                    </tbody>
+                </table>
+
+                <h2>İzin Raporu</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/reports/excel/leaves" summary="Aylık izin taleplerini Excel dosyası olarak indir (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "month", "type": "string", "required": true, "desc": "Rapor ayı, YYYY-MM formatında (örn. 2026-06)." }
+                        ]
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <h3>İzin Raporu Excel Sütunları</h3>
+                <table>
+                    <thead><tr><th>Sütun Adı</th><th>İçeriği</th></tr></thead>
+                    <tbody>
+                        <tr><td>Personel Adı</td><td>Talebi oluşturan çalışan.</td></tr>
+                        <tr><td>İzin Türü</td><td>annual (yıllık) / report (rapor) / excuse (mazeret).</td></tr>
+                        <tr><td>Başlangıç Tarihi</td><td>İzin başlangıcı (GG/AA/YYYY).</td></tr>
+                        <tr><td>Bitiş Tarihi</td><td>İzin bitişi (GG/AA/YYYY).</td></tr>
+                        <tr><td>Gün Sayısı</td><td>Hesaplanan iş günü sayısı (tatil ve hafta sonu dahil değil).</td></tr>
+                        <tr><td>Durum</td><td>pending / approved / rejected.</td></tr>
+                        <tr><td>Gerekçe</td><td>Çalışanın yazdığı açıklama.</td></tr>
+                    </tbody>
+                </table>
+
+                <c-callout variant="tip" title="Raporu programatik olarak nasıl indiririm?">
+                    İstemcide anchor elementi oluşturup <code>download</code> attribute'u ile tetikleyebilirsiniz:
+                </c-callout>
+                <c-code-block lang="javascript">// Devam raporunu indir
+const response = await fetch('/api/v1/reports/excel/attendance?month=2026-06', {
+    credentials: 'include'  // httpOnly cookie otomatik gönderilir
+});
+
+const blob = await response.blob();
+const url  = URL.createObjectURL(blob);
+
+const a = document.createElement('a');
+a.href     = url;
+a.download = 'devam-raporu-2026-06.xlsx';
+a.click();
+
+URL.revokeObjectURL(url);</c-code-block>
+
+                <c-pagination-nav
+                    prev-href="settings.html" prev-label="Ayarlar"
+                    next-href="events.html" next-label="Gerçek Zamanlı (SSE)">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

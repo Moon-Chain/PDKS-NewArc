@@ -2210,7 +2210,14 @@ select.field-input { cursor: pointer; background-image: url("data:image/svg+xml,
 }
 
 /* Field — PDKS-main: space-y-1 */
-.lv-field { display: flex; flex-direction: column; gap: 4px; }
+.lv-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+/* 2 ve 3 kolonlu form grid'leri — date/time input'ların min-content genişliği
+   mobilde sayfayı sağa taşırmasın diye min-width: 0 ile birlikte daraltılabilir */
+.lv-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.lv-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .lv-grid-3 { grid-template-columns: 1fr; } }
+@media (max-width: 360px) { .lv-grid-2 { grid-template-columns: 1fr; } }
 /* PDKS-main: text-[10px] font-bold text-zinc-500 uppercase */
 .lv-label {
   font-size: 10px; font-weight: 700; text-transform: uppercase;

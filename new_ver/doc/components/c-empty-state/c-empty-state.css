@@ -1,0 +1,58 @@
+/* c-empty-state: boş içerik placeholder */
+
+.c-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--c-space-5) var(--c-space-3);
+    color: var(--c-text-muted);
+}
+
+/* ── İkon ── */
+.c-empty-state__icon {
+    margin-bottom: var(--c-space-3);
+    color: var(--c-text-muted);
+    opacity: 0.5;
+}
+
+.c-empty-state__icon svg {
+    display: block;
+}
+
+.c-empty-state__icon--emoji {
+    opacity: 1;
+    line-height: 1;
+}
+
+/* ── Boyutlar ── */
+.c-empty-state--sm .c-empty-state__icon svg { width: 32px; height: 32px; }
+.c-empty-state--md .c-empty-state__icon svg { width: 48px; height: 48px; }
+.c-empty-state--lg .c-empty-state__icon svg { width: 64px; height: 64px; }
+
+.c-empty-state--sm .c-empty-state__icon--emoji { font-size: 2rem; }
+.c-empty-state--md .c-empty-state__icon--emoji { font-size: 3rem; }
+.c-empty-state--lg .c-empty-state__icon--emoji { font-size: 4rem; }
+
+/* ── Metin ── */
+.c-empty-state__title {
+    margin: 0 0 var(--c-space-2);
+    font-weight: 600;
+    color: var(--c-text);
+}
+
+.c-empty-state--sm .c-empty-state__title { font-size: var(--c-font-size-sm); }
+.c-empty-state--md .c-empty-state__title { font-size: var(--c-font-size-base); }
+.c-empty-state--lg .c-empty-state__title { font-size: var(--c-font-size-lg); }
+
+.c-empty-state__description {
+    margin: 0;
+    font-size: var(--c-font-size-sm);
+    max-width: 36ch;
+    line-height: 1.6;
+}
+
+/* ── Aksiyon ── */
+.c-empty-state__action {
+    margin-top: var(--c-space-3);
+}

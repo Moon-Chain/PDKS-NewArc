@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerçek Zamanlı (SSE) — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-tabs/c-tabs.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-steps/c-steps.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="events" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Gerçek Zamanlı (SSE)"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Gerçek Zamanlı (SSE)</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/events</code> — Auth gereklidir.
+                </p>
+                <p>
+                    PDKS,
+                    <c-tooltip text="SSE (Server-Sent Events) — sunucunun tarayıcıya tek yönlü, kalıcı bir bağlantı üzerinden anlık mesaj göndermesi. WebSocket'ten farklı olarak sadece sunucu → istemci yönünde çalışır. HTTP/1.1 üzerinde çalışır; bağlantıyı sürdürmek için ek protokol gerekmez." position="top"><span class="term">Server-Sent Events (SSE)</span></c-tooltip>
+                    teknolojisiyle gerçek zamanlı güncellemeler sağlar. Sayfa yenilemeye gerek kalmadan;
+                    devam kayıtları ve bildirimler ekranda anında güncellenir.
+                </p>
+
+                <c-callout variant="info" title="SSE vs WebSocket — fark nedir?">
+                    <strong>SSE</strong> — yalnızca sunucudan tarayıcıya veri gider. Basit, HTTP üzerinde çalışır, otomatik yeniden bağlanır.<br>
+                    <strong>WebSocket</strong> — çift yönlü; hem sunucu hem istemci mesaj gönderebilir. Karmaşık chat uygulamaları için daha uygundur.<br>
+                    PDKS için SSE yeterlidir: tarayıcının sunucuya anlık mesaj göndermesine gerek yoktur.
+                </c-callout>
+
+                <h2>Bağlantı Kurma</h2>
+                <p>
+                    Tarayıcı tarafında
+                    <c-tooltip text="EventSource — tarayıcıda SSE bağlantısı açmak için kullanılan yerleşik API. withCredentials: true ile httpOnly cookie otomatik gönderilir ve kullanıcı kimliği doğrulanır." position="top"><span class="term">EventSource</span></c-tooltip>
+                    API'si ile bağlantı kurulur:
+                </p>
+
+                <c-code-block lang="javascript">// SSE bağlantısı aç
+const source = new EventSource('/api/v1/events', {
+    withCredentials: true  // httpOnly cookie için zorunlu
+});
+
+// Bağlantı başarıyla kurulunca
+source.addEventListener('connected', (e) => {
+    const data = JSON.parse(e.data);
+    console.log('Bağlandı — Kullanıcı:', data.userId, '— Rol:', data.role);
+});
+
+// Devam kaydı geldiğinde (giriş/çıkış)
+source.addEventListener('attendance', (e) => {
+    const log = JSON.parse(e.data);
+    console.log(`${log.user_name} ${log.type === 'in' ? 'girdi' : 'çıktı'}`);
+});
+
+// Yeni bildirim geldiğinde
+source.addEventListener('notification', (e) => {
+    const notif = JSON.parse(e.data);
+    console.log('Yeni bildirim:', notif.title);
+});
+
+// Bağlantı kopunca (EventSource otomatik yeniden bağlanır)
+source.onerror = () => {
+    console.log('Bağlantı koptu, yeniden deneniyor...');
+};</c-code-block>
+
+                <h2>Olay Türleri</h2>
+                <table>
+                    <thead>
+                        <tr><th>Olay Adı</th><th>Ne Zaman Tetiklenir?</th><th>Taşınan Veri</th><th>Kim Alır?</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>connected</code></td>
+                            <td>İstemci SSE bağlantısı açtığında anında gönderilir.</td>
+                            <td><code>{ userId, role }</code></td>
+                            <td>Yalnızca bağlanan kullanıcı.</td>
+                        </tr>
+                        <tr>
+                            <td><code>attendance</code></td>
+                            <td>Herhangi bir giriş/çıkış kaydı oluşturulduğunda.</td>
+                            <td>Tam devam log nesnesi (kullanıcı adı, tür, zaman damgası).</td>
+                            <td>Admin/müdür tüm şirketin kayıtlarını alır. Personel yalnızca kendi kaydını alır.</td>
+                        </tr>
+                        <tr>
+                            <td><code>notification</code></td>
+                            <td>Kullanıcıya yönelik yeni bildirim oluşturulduğunda.</td>
+                            <td>Tam bildirim nesnesi (başlık, mesaj, tür, link).</td>
+                            <td>Yalnızca hedef kullanıcı.</td>
+                        </tr>
+                        <tr>
+                            <td><code>:heartbeat</code></td>
+                            <td>Her 25 saniyede bir.</td>
+                            <td>Veri yok — sadece bağlantıyı canlı tutar.</td>
+                            <td>Tüm bağlı istemciler.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <c-callout variant="tip" title="Heartbeat neden gerekli?">
+                    Bazı
+                    <c-tooltip text="Proxy / CDN / Load Balancer — ağ altyapısı katmanları. Uzun süre sessiz kalan bağlantıları otomatik kapatabilirler. Heartbeat paketi, bağlantının hâlâ aktif olduğunu söyler ve bu kesmeyi önler." position="right"><span class="term">proxy, CDN veya load balancer</span></c-tooltip>
+                    katmanları çok uzun süre sessiz kalan bağlantıları kapatır. Her 25 saniyede gönderilen <code>:heartbeat</code> comment'i bu kesmeyi engeller.
+                    Tarayıcı tarafında görünmez; hiçbir event listener'ı tetiklemez.
+                </c-callout>
+
+                <h2>Veri Yapıları</h2>
+
+                <h3>attendance olayı</h3>
+                <c-code-block lang="json">{
+  "id":         "uuid-...",
+  "user_id":    "uuid-...",
+  "user_name":  "Ahmet Yılmaz",
+  "type":       "in",
+  "timestamp":  "2026-06-16T09:02:00.000Z",
+  "is_remote":  false,
+  "status":     "success"
+}</c-code-block>
+
+                <h3>notification olayı</h3>
+                <c-code-block lang="json">{
+  "id":         "uuid-...",
+  "title":      "İzin Onaylandı",
+  "message":    "01.07.2026 - 05.07.2026 tarihli izin talebiniz onaylandı.",
+  "type":       "success",
+  "is_read":    false,
+  "link":       "/leaves"
+}</c-code-block>
+
+                <h2>Ham SSE Akışı</h2>
+                <p>Sunucunun gönderdiği ham metin akışı şu şekilde görünür (bir HTTP bağlantısı üzerinden akar, kapatılmaz):</p>
+                <c-code-block lang="text">HTTP/1.1 200 OK
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+
+event: connected
+data: {"userId":"uuid-...","role":"personel"}
+
+: heartbeat
+
+event: attendance
+data: {"id":"uuid-...","type":"in","timestamp":"...","user_name":"Ahmet Yılmaz"}
+
+: heartbeat
+
+event: notification
+data: {"id":"uuid-...","title":"İzin Onaylandı","type":"success"}</c-code-block>
+
+                <c-pagination-nav
+                    prev-href="reports.html" prev-label="Raporlar"
+                    next-href="push.html" next-label="Push Bildirimler">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-tabs/c-tabs.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-steps/c-steps.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

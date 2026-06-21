@@ -1,0 +1,67 @@
+/* c-image-zoom: tıklanınca overlay'de büyüyen resim */
+
+.c-image-zoom {
+    display: inline-block;
+}
+
+.c-image-zoom__thumb {
+    display: block;
+    max-width: 100%;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    cursor: zoom-in;
+}
+
+.c-image-zoom__thumb:hover {
+    border-color: var(--c-primary);
+}
+
+.c-image-zoom__caption {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--c-text-muted);
+    margin-top: var(--c-space-1);
+    text-align: center;
+}
+
+/* Overlay */
+.c-image-zoom__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, .85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--c-space-4);
+}
+
+.c-image-zoom__full {
+    max-width: 90vw;
+    max-height: 88vh;
+    border-radius: var(--c-radius);
+    display: block;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, .6);
+}
+
+.c-image-zoom__close {
+    position: absolute;
+    top: var(--c-space-3);
+    right: var(--c-space-3);
+    width: 2rem;
+    height: 2rem;
+    background: rgba(255, 255, 255, .15);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.c-image-zoom__close:hover {
+    background: rgba(255, 255, 255, .3);
+}

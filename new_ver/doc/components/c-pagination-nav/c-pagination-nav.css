@@ -1,0 +1,40 @@
+/* c-pagination-nav: sayfa altı önceki/sonraki linkleri */
+
+.c-pagination-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--c-space-3);
+    margin-top: var(--c-space-5);
+    padding-top: var(--c-space-3);
+    border-top: 1px solid var(--c-border);
+}
+
+.c-pagination-nav__link {
+    display: flex;
+    flex-direction: column;
+    padding: var(--c-space-2) var(--c-space-3);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    color: var(--c-text) !important;
+    min-width: 8rem;
+}
+
+.c-pagination-nav__link:hover {
+    background-color: var(--c-accent-bg);
+    text-decoration: none;
+}
+
+.c-pagination-nav__link--next {
+    text-align: right;
+    align-items: flex-end;
+    margin-left: auto;
+}
+
+.c-pagination-nav__direction {
+    font-size: 0.75rem;
+    color: var(--c-text-muted);
+}
+
+.c-pagination-nav__label {
+    font-weight: 600;
+}

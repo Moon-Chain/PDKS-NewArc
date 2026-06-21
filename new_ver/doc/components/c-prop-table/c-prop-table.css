@@ -1,0 +1,23 @@
+/* c-prop-table: bileşen prop/attribute referans tablosu */
+
+.c-prop-table__wrap {
+    overflow-x: auto;
+    margin: var(--c-space-3) 0;
+}
+
+.c-prop-table__wrap table {
+    margin: 0;
+}
+
+.c-prop-table__type {
+    color: var(--c-info);
+}
+
+.c-prop-table__required {
+    color: var(--c-danger);
+    font-weight: 600;
+}
+
+.c-prop-table__optional {
+    color: var(--c-text-muted);
+}

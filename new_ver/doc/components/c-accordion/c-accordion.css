@@ -1,0 +1,54 @@
+/* c-accordion: açılır/kapanır liste (SSS, endpoint detayları vb.) */
+
+c-accordion-item {
+    display: none;
+}
+
+.c-accordion__item {
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    margin-bottom: var(--c-space-2);
+    overflow: hidden;
+}
+
+.c-accordion__trigger {
+    width: 100%;
+    text-align: left;
+    padding: var(--c-space-2) var(--c-space-3);
+    background-color: var(--c-bg-subtle);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--c-text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--c-space-2);
+}
+
+.c-accordion__trigger:hover {
+    background-color: var(--c-accent-bg);
+}
+
+.c-accordion__trigger::after {
+    content: "+";
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.c-accordion__trigger--open::after {
+    content: "\2212";
+}
+
+.c-accordion__panel {
+    display: none;
+    padding: var(--c-space-3);
+}
+
+.c-accordion__panel--open {
+    display: block;
+}
+
+.c-accordion__panel>*:last-child {
+    margin-bottom: 0;
+}

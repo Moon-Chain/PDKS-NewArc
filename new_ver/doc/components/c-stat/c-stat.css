@@ -1,0 +1,41 @@
+/* c-stat: büyük sayı / metrik kartı */
+
+.c-stat {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--c-space-1);
+    padding: var(--c-space-3);
+    border: 1px solid var(--c-border);
+    background: var(--c-bg-elevated);
+    min-width: 110px;
+}
+
+.c-stat__value {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--c-text);
+    letter-spacing: -0.02em;
+}
+
+.c-stat__label {
+    font-size: 0.78rem;
+    color: var(--c-text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.c-stat--accent .c-stat__value {
+    color: var(--c-primary);
+}
+
+/* Yan yana stat dizisi için */
+.c-stat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--c-space-3);
+    margin: var(--c-space-3) 0;
+}

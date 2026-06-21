@@ -5,7 +5,7 @@
   "description": "PDKS - Personel Devam Kontrol Sistemi",
   "scripts": {
     "dev": "concurrently \"tsx watch server.ts\" \"tsx build.ts --watch\"",
-    "build": "tsc --noEmit && tsx build.ts",
+    "build": "tsc && tsx build.ts",
     "build:watch": "tsx build.ts --watch",
     "start": "node dist/server.js",
     "migrate": "tsx db/migrate.ts",

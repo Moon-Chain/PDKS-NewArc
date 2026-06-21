@@ -1,0 +1,95 @@
+/* c-file-tree: açılır/kapanır klasör ağacı */
+
+c-tree-folder,
+c-tree-file {
+    display: none;
+}
+
+.c-file-tree {
+    display: block;
+    background-color: var(--c-bg-subtle);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    padding: var(--c-space-1) 0;
+    margin: var(--c-space-3) 0;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.875rem;
+    line-height: 1;
+}
+
+.c-file-tree__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.c-file-tree__list--nested {
+    padding-left: 1.1rem;
+}
+
+.c-file-tree__list--collapsed {
+    display: none;
+}
+
+.c-file-tree__item {
+    display: block;
+}
+
+.c-file-tree__row {
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.28rem 0.75rem;
+    color: var(--c-text);
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.c-file-tree__row--folder {
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.c-file-tree__row:hover {
+    background-color: rgba(128, 128, 128, .1);
+}
+
+/* ▶ rotates 90° to ▶ → ▾ when open */
+.c-file-tree__toggle {
+    display: inline-block;
+    width: 0.7em;
+    font-size: 0.6em;
+    color: var(--c-text-muted);
+    flex-shrink: 0;
+    text-align: center;
+    transition: transform .12s ease;
+    line-height: 1;
+}
+
+.c-file-tree__toggle--open {
+    transform: rotate(90deg);
+}
+
+.c-file-tree__icon {
+    flex-shrink: 0;
+    font-size: 0.95em;
+    line-height: 1;
+    opacity: 0.75;
+}
+
+.c-file-tree__name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5;
+}
+
+.c-file-tree__name--folder {
+    color: var(--c-text);
+}
+
+.c-file-tree__name--file {
+    color: var(--c-text);
+    opacity: 0.85;
+}

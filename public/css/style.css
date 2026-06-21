@@ -79,6 +79,7 @@ html {
 }
 
 body {
+  overflow-x: hidden; /* içerikteki taşmalar sayfayı sağa kaydırmasın (mobil) */
   background-color: var(--bg-base);
   /* Oranj radial gradient arka plan — PDKS-main ile aynı */
   background-image:

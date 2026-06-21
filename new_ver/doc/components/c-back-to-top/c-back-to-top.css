@@ -1,0 +1,40 @@
+/* c-back-to-top: scroll sonrası beliren yukarı çık butonu */
+
+.c-back-to-top {
+    position: fixed;
+    bottom: var(--c-space-4);
+    right: var(--c-space-4);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.c-back-to-top--visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.c-back-to-top__btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 0;
+    background: var(--c-primary);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.1s;
+}
+
+.c-back-to-top__btn:hover {
+    background-color: color-mix(in srgb, var(--c-primary) 80%, #000);
+}

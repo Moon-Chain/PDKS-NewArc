@@ -1,0 +1,163 @@
+/* c-command-palette: Ctrl+K / Cmd+K ile açılan klavye-driven arama overlay'i */
+
+.c-cmdpal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 8vh;
+}
+
+.c-cmdpal[hidden] {
+    display: none;
+}
+
+.c-cmdpal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    backdrop-filter: blur(2px);
+}
+
+.c-cmdpal__panel {
+    position: relative;
+    width: 100%;
+    max-width: 580px;
+    margin: 0 var(--c-space-3);
+    background: var(--c-bg-elevated);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-lg);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .35);
+    overflow: hidden;
+}
+
+.c-cmdpal__search-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+    padding: 0.75rem var(--c-space-3);
+    border-bottom: 1px solid var(--c-border);
+}
+
+.c-cmdpal__search-icon {
+    flex-shrink: 0;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--c-text-muted);
+}
+
+.c-cmdpal__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: var(--c-font-size-base);
+    font-family: inherit;
+    color: var(--c-text);
+    padding: 0;
+    line-height: 1.5;
+}
+
+.c-cmdpal__input::placeholder {
+    color: var(--c-text-muted);
+}
+
+.c-cmdpal__kbd-hint {
+    flex-shrink: 0;
+    font-size: var(--c-font-size-xs);
+    color: var(--c-text-muted);
+    padding: 0.125em 0.5em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    font-family: inherit;
+    background: var(--c-bg-subtle);
+}
+
+.c-cmdpal__list {
+    list-style: none;
+    margin: 0;
+    padding: var(--c-space-1) 0;
+    max-height: 380px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.c-cmdpal__group-label {
+    padding: 0.5rem var(--c-space-3) 0.2rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--c-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.c-cmdpal__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem var(--c-space-3);
+    cursor: pointer;
+    color: var(--c-text);
+    font-size: var(--c-font-size-sm);
+    gap: var(--c-space-2);
+    transition: background 0.08s;
+    user-select: none;
+}
+
+.c-cmdpal__item:hover,
+.c-cmdpal__item--active {
+    background: var(--c-bg-subtle);
+    color: var(--c-link);
+}
+
+.c-cmdpal__item-label {
+    font-weight: 500;
+    flex: 1;
+}
+
+.c-cmdpal__item-group {
+    font-size: var(--c-font-size-xs);
+    color: var(--c-text-muted);
+    white-space: nowrap;
+}
+
+.c-cmdpal__item--active .c-cmdpal__item-group {
+    color: var(--c-link);
+    opacity: 0.7;
+}
+
+.c-cmdpal__empty {
+    padding: var(--c-space-5);
+    text-align: center;
+    color: var(--c-text-muted);
+    font-size: var(--c-font-size-sm);
+}
+
+.c-cmdpal__footer {
+    display: flex;
+    gap: var(--c-space-3);
+    align-items: center;
+    padding: 0.45rem var(--c-space-3);
+    border-top: 1px solid var(--c-border);
+    background: var(--c-bg-subtle);
+}
+
+.c-cmdpal__footer-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    color: var(--c-text-muted);
+}
+
+.c-cmdpal__footer-hint kbd {
+    font-size: 0.65rem;
+    padding: 0.1em 0.35em;
+    border: 1px solid var(--c-border);
+    border-radius: 3px;
+    background: var(--c-bg-elevated);
+    font-family: inherit;
+    line-height: 1.4;
+}

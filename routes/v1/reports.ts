@@ -2,9 +2,26 @@ import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { ExcelService } from '../../services/ExcelService.js';
 import { AppError } from '../../core/AppError.js';
+import { AuditRepository } from '../../repositories/AuditRepository.js';
+import { UserRepository } from '../../repositories/UserRepository.js';
 
-const router  = Router();
-const service = new ExcelService();
+const router    = Router();
+const service   = new ExcelService();
+const auditRepo = new AuditRepository();
+const userRepo  = new UserRepository();
+
+async function logReportDownload(req: { user?: { id: string; company_id: string } }, targetTable: string, newValue: unknown): Promise<void> {
+  try {
+    const { id: actorId, company_id: companyId } = req.user!;
+    const actor = await userRepo.findById(actorId, companyId);
+    await auditRepo.insert({
+      companyId, actorId, actorName: actor?.name ?? 'Bilinmeyen', action: 'report_download',
+      targetTable, newValue,
+    });
+  } catch {
+    // Rapor indirme loglanamadı — indirme işlemini etkilemez
+  }
+}
 
 // Devam Raporu — Excel indir
 router.get('/excel/attendance', requireAuth, async (req, res, next) => {
@@ -31,6 +48,8 @@ router.get('/excel/attendance', requireAuth, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.end(buffer);
+
+    await logReportDownload(req, 'attendance', { month, filename });
   } catch (err) { next(err); }
 });
 
@@ -51,6 +70,8 @@ router.get('/excel/leaves', requireAuth, async (req, res, next) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.end(buffer);
+
+    await logReportDownload(req, 'leaves', { month: month ?? null, filename });
   } catch (err) { next(err); }
 });
 

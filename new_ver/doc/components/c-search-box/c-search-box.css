@@ -1,0 +1,27 @@
+/* c-search-box: client-side filtre arama kutusu */
+
+.c-search-box__input {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    font-size: 0.9rem;
+}
+
+.c-search-box__input:focus {
+    outline: 2px solid var(--c-link);
+    outline-offset: 1px;
+}
+
+.c-search-box__empty {
+    color: var(--c-text-muted);
+    font-size: 0.875rem;
+    margin-top: var(--c-space-2);
+    display: none;
+}
+
+.c-search-box__empty--visible {
+    display: block;
+}

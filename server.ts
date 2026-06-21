@@ -24,6 +24,7 @@ import notificationsRoute from './routes/v1/notifications.js';
 import pushRoute          from './routes/v1/push.js';
 import holidaysRoute      from './routes/v1/holidays.js';
 import reportsRoute       from './routes/v1/reports.js';
+import adminRoute         from './routes/v1/admin/index.js';
 
 // Event dinleyicilerini başlat
 import './events/setup.js';
@@ -150,6 +151,12 @@ app.use('/api/v1/notifications', notificationsRoute);
 app.use('/api/v1/push',          pushRoute);
 app.use('/api/v1/holidays',      holidaysRoute);
 app.use('/api/v1/reports',       reportsRoute);
+app.use('/api/v1/admin',         adminRoute);
+
+// Admin SPA catch-all — /admin ve /admin/* (statik dosya olmayan) admin.html döner
+app.get(/^\/admin(\/.*)?$/, (_req, res) => {
+  res.sendFile(join(__dirname, 'public', 'admin', 'index.html'));
+});
 
 // SPA catch-all — API olmayan her URL index.html döner
 app.get('*', (req, res, next) => {

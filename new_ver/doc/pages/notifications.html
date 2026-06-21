@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bildirimler — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="notifications" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Bildirimler"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Bildirimler</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/notifications</code>
+                </p>
+                <p>
+                    Bildirimler, sistem içinde gerçekleşen olayları (izin onayı, fazla mesai reddi, vb.) kullanıcıya haber veren
+                    in-app mesajlardır.
+                    Her bildirim bir
+                    <c-tooltip text="Olay tabanlı mimari — sistemin farklı parçaları EventEmitter üzerinden birbirine haber verir. İzin onaylandığında 'leave:approved' olayı yayınlanır ve listener otomatik bildirim oluşturur." position="top"><span class="term">olay</span></c-tooltip>
+                    tarafından otomatik oluşturulur; istemci tarafında elle bildirim yaratmanıza gerek kalmaz.
+                </p>
+
+                <c-callout variant="warning" title="7 Günlük Saklama Süresi">
+                    Bildirimler <code>created_at</code> tarihinden itibaren 7 gün sonra otomatik olarak veritabanından silinir.
+                    Okunmayan eski bildirimler de bu süre sonunda kaybolur.
+                    <c-tooltip text="Soft Delete — veriyi fiziksel silmek yerine silinmiş işaretleme. Bildirimler de soft delete destekler; kullanıcı silerse is_deleted=true olur ama 7 gün sonra fiziksel temizlik yapılır." position="right"><span class="term">Soft delete</span></c-tooltip>
+                    de desteklenir.
+                </c-callout>
+
+                <h2>Bildirim Türleri ve Renk Kodları</h2>
+                <p>Her bildirim bir <code>type</code> alanı taşır. Bu alan ön yüzde renge ve ikona dönüştürülür:</p>
+
+                <table>
+                    <thead><tr><th>Tür</th><th>Renk</th><th>Hangi Olayda Oluşur?</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><c-badge variant="info">info</c-badge></td>
+                            <td>Mavi</td>
+                            <td>Genel bilgilendirme mesajları.</td>
+                        </tr>
+                        <tr>
+                            <td><c-badge variant="success">success</c-badge></td>
+                            <td>Yeşil</td>
+                            <td>İzin veya fazla mesai onaylandı.</td>
+                        </tr>
+                        <tr>
+                            <td><c-badge variant="warning">warning</c-badge></td>
+                            <td>Sarı</td>
+                            <td>Dikkat gerektiren durumlar (yaklaşan bitiş tarihleri, vb.).</td>
+                        </tr>
+                        <tr>
+                            <td><c-badge variant="danger">error</c-badge></td>
+                            <td>Kırmızı</td>
+                            <td>İzin veya fazla mesai reddedildi.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/notifications" summary="Kendi bildirimlerini sayfalı olarak getir">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "page",  "type": "integer", "required": false, "desc": "Sayfa numarası (varsayılan: 1)." },
+                            { "name": "limit", "type": "integer", "required": false, "desc": "Sayfa başı bildirim sayısı (varsayılan: 30)." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"notifications\": [\n    {\n      \"id\": \"uuid-...\",\n      \"title\": \"İzin Onaylandı\",\n      \"message\": \"01.07.2026 - 05.07.2026 tarihli izin talebiniz onaylandı.\",\n      \"type\": \"success\",\n      \"is_read\": false,\n      \"link\": \"/leaves\",\n      \"created_at\": \"2026-06-16T10:30:00.000Z\"\n    }\n  ],\n  \"unread\": 3\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="link alanı ne işe yarar?">
+                    <code>link</code> alanı, bildirimin ilgili olduğu sayfanın yolunu içerir (örn. <code>/leaves</code>).
+                    Ön yüz bu alanı kullanarak bildirime tıklandığında kullanıcıyı doğrudan ilgili sayfaya yönlendirir.
+                </c-callout>
+
+                <c-api-endpoint method="GET" url="/api/v1/notifications/count" summary="Okunmamış bildirim sayısını getir (navbar rozeti için)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"unread\": 3\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="info" title="Bu endpoint neden ayrı?">
+                    Navbar'daki bildirim rozeti (kırmızı sayı balonu) her sayfa yüklendiğinde güncellenmesi gerekir.
+                    Tüm bildirimleri çekmek yerine yalnızca sayıyı dönen bu hafif endpoint kullanılarak gereksiz veri transferi önlenir.
+                </c-callout>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/notifications/:id/read" summary="Tek bildirimi okundu olarak işaretle">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="POST" url="/api/v1/notifications/read-all" summary="Tüm okunmamış bildirimleri okundu yap">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="DELETE" url="/api/v1/notifications/:id" summary="Bildirimi gizle (soft delete)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-pagination-nav
+                    prev-href="overtime.html" prev-label="Fazla Mesai"
+                    next-href="holidays.html" next-label="Tatil Günleri">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

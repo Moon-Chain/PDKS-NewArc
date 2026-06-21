@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push Bildirimler — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-steps/c-steps.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="push" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Push Bildirimler"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Push Bildirimler</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/push</code>
+                </p>
+                <p>
+                    Push bildirimler,
+                    <c-tooltip text="Web Push Protokolü — tarayıcı bildirimlerini sunucudan göndermeye yarayan standart. PDKS'te Node.js 'web-push' kütüphanesiyle kullanılır." position="top"><span class="term">Web Push Protokolü</span></c-tooltip>
+                    ve
+                    <c-tooltip text="VAPID (Voluntary Application Server Identification) — push bildirimlerinde sunucuyu tanımlayan açık/özel anahtar çifti. Push servislerine 'bu bildirim güvenilir bir sunucudan geliyor' mesajı verir." position="top"><span class="term">VAPID</span></c-tooltip>
+                    anahtarları kullanılarak çalışır.
+                    Kullanıcı uygulamayı kapatmış olsa bile tarayıcı bildirimi alır ve ekranda gösterir.
+                </p>
+
+                <c-callout variant="info" title="In-App Bildirim ile Push Bildirimi Arasındaki Fark">
+                    <strong>In-App Bildirim</strong> — uygulama açıkken SSE üzerinden gelir, navbar'daki sayaç güncellenir.<br>
+                    <strong>Push Bildirimi</strong> — uygulama kapalıyken bile gelir; işletim sisteminin bildirim alanında görünür (Chrome, Edge, Firefox destekler).
+                </c-callout>
+
+                <h2>Push Bildirimi Nasıl Çalışır?</h2>
+
+                <c-steps>
+                    <c-step title="VAPID public key alınır">
+                        <p>
+                            <c-tooltip text="Service Worker — tarayıcı arka planında çalışan JavaScript dosyası. Sayfa kapalıyken bile push mesajlarını alıp gösterir." position="right"><span class="term">Service Worker</span></c-tooltip>
+                            kaydından önce sunucudan VAPID public key alınır: <code>GET /api/v1/push/vapid-key</code>
+                        </p>
+                    </c-step>
+                    <c-step title="Tarayıcı push aboneliği oluşturur">
+                        <p>
+                            <code>pushManager.subscribe()</code> çağrısıyla tarayıcı, VAPID public key'i kullanarak push servisiyle
+                            (<c-tooltip text="Push Servisi — Google (FCM), Mozilla (autopush) gibi tarayıcıya özgü push altyapısı. Sunucu bu servise mesaj gönderir, servis tarayıcıya iletir." position="right"><span class="term">FCM / autopush vb.</span></c-tooltip>)
+                            bir abonelik oluşturur. Abonelik nesnesi endpoint URL'si ve şifreleme anahtarlarını içerir.
+                        </p>
+                    </c-step>
+                    <c-step title="Abonelik sunucuya kaydedilir">
+                        <p>
+                            <code>POST /api/v1/push/subscribe</code> ile abonelik nesnesi sunucuya gönderilir.
+                            Sunucu bunu kullanıcının <code>push_subscription</code> alanına
+                            <c-tooltip text="JSONB — PostgreSQL'in ikili JSON alanı. Normal JSON'dan daha hızlı sorgulanır ve içerik üzerinde indeks oluşturulabilir." position="right"><span class="term">JSONB</span></c-tooltip>
+                            olarak kaydeder.
+                        </p>
+                    </c-step>
+                    <c-step title="Sistem olayı tetiklendiğinde bildirim gönderilir">
+                        <p>
+                            İzin onayı, red gibi olaylarda sunucu <code>web-push</code> kütüphanesiyle
+                            <c-tooltip text="VAPID özel anahtarı — sunucunun elinde olan gizli anahtar. Push servisine 'bu mesaj gerçekten benden' demek için imzalama yapar. Açık anahtar ile doğrulanır." position="right"><span class="term">VAPID özel anahtarıyla</span></c-tooltip>
+                            imzalanmış bildirim gönderir. Push servisi tarayıcıya iletir; Service Worker bildirimi ekranda gösterir.
+                        </p>
+                    </c-step>
+                </c-steps>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/push/vapid-key" summary="VAPID açık anahtarını getir (auth gerektirmez)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"key\": \"BNcRdreALRFXTkOOUHK1EtK2wtwe38YjMRRRhiWJQRqnit6tRsGe8A7...\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="Neden auth gerektirmez?">
+                    VAPID public key herkese açık olabilir; gizlilik gerektirmez. Service Worker kayıt sürecinin en başında, kullanıcı henüz giriş yapmadan önce de bu key'e ihtiyaç duyulabilir.
+                </c-callout>
+
+                <c-api-endpoint method="POST" url="/api/v1/push/subscribe" summary="Tarayıcı push aboneliğini kaydet (auth gerekli)">
+                    <script type="application/json">
+                    {
+                        "request":  "{\n  \"subscription\": {\n    \"endpoint\": \"https://fcm.googleapis.com/fcm/send/...\",\n    \"keys\": {\n      \"p256dh\": \"BIJK...\",\n      \"auth\": \"abc123\"\n    }\n  }\n}",
+                        "response": "{\n  \"success\": true\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-code-block lang="javascript">// Tam uygulama örneği — Service Worker kayıt ve abonelik
+async function enablePushNotifications() {
+    // 1. Service Worker'ı kaydet
+    const registration = await navigator.serviceWorker.register('/sw.js');
+
+    // 2. VAPID public key al
+    const { key } = await fetch('/api/v1/push/vapid-key').then(r => r.json());
+
+    // 3. Push aboneliği oluştur
+    const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: key  // VAPID public key
+    });
+
+    // 4. Aboneliği sunucuya kaydet
+    await fetch('/api/v1/push/subscribe', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription })
+    });
+
+    console.log('Push bildirimler etkinleştirildi.');
+}</c-code-block>
+
+                <c-api-endpoint method="DELETE" url="/api/v1/push/subscribe" summary="Push aboneliğini kaldır (auth gerekli)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="info" title="Abonelik kaldırıldığında ne olur?">
+                    Kullanıcının <code>push_subscription</code> alanı <code>NULL</code> yapılır.
+                    Bir sonraki olay tetiklendiğinde bu kullanıcıya push bildirimi gönderilmez; yalnızca in-app bildirim oluşturulur.
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-href="events.html" prev-label="Gerçek Zamanlı (SSE)"
+                    next-href="admin-dashboard.html" next-label="Admin Dashboard">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-steps/c-steps.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

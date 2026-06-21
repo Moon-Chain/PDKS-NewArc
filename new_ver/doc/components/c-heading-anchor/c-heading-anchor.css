@@ -1,0 +1,29 @@
+/* c-heading-anchor: başlıklara hover # anchor linki */
+
+c-heading-anchor {
+    display: none;
+}
+
+.c-heading-anchor__heading {
+    position: relative;
+}
+
+.c-heading-anchor__link {
+    margin-left: var(--c-space-2);
+    font-size: 0.7em;
+    font-weight: 400;
+    color: var(--c-text-muted);
+    opacity: 0;
+    text-decoration: none;
+    vertical-align: middle;
+    user-select: none;
+}
+
+.c-heading-anchor__heading:hover .c-heading-anchor__link {
+    opacity: 1;
+}
+
+.c-heading-anchor__link--copied {
+    color: var(--c-success) !important;
+    opacity: 1 !important;
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tatil Günleri — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="holidays" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Tatil Günleri"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Tatil Günleri</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/holidays</code>
+                </p>
+                <p>
+                    Tatil günleri modülü, yıllık izin gün sayısı hesaplamasında ve devam raporlarında
+                    iş günlerinin doğru sayılmasını sağlar. Tanımlanan tatil günleri,
+                    izin talebi oluşturulduğunda hafta sonlarıyla birlikte otomatik olarak dışarıda tutulur.
+                </p>
+
+                <h2>Global Tatiller ile Şirket Tatilleri Arasındaki Fark</h2>
+
+                <table>
+                    <thead><tr><th>Tür</th><th>company_id</th><th>Kimler görür?</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>Global tatil</td>
+                            <td><code>NULL</code></td>
+                            <td>Tüm şirketler — Türkiye geneli resmi tatiller buraya girer.</td>
+                        </tr>
+                        <tr>
+                            <td>Şirket tatili</td>
+                            <td>Şirket UUID'si</td>
+                            <td>Yalnızca o şirket — fabrika kuruluş yıl dönümü gibi özel günler.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <c-callout variant="info" title="İzin hesaplamasına etkisi">
+                    Bir çalışan 1 Temmuz – 7 Temmuz arası izin talep ettiğinde sistem şunu yapar:
+                    <ol>
+                        <li>5 Temmuz (Cumartesi) ve 6 Temmuz (Pazar) hafta sonunu çıkarır.</li>
+                        <li>Bu aralıkta kayıtlı tatil günü varsa onu da çıkarır.</li>
+                        <li>Kalan günleri <code>days</code> olarak hesaplar ve bakiyeden o kadar düşer.</li>
+                    </ol>
+                </c-callout>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/holidays" summary="Belirli yıldaki tatil günlerini listele">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "year", "type": "integer", "required": false, "desc": "Yıl filtresi (örn. 2026). Belirtilmezse mevcut yıl kullanılır." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"rows\": [\n    { \"id\": 1, \"date\": \"2026-01-01\", \"name\": \"Yılbaşı\", \"is_half_day\": false },\n    { \"id\": 2, \"date\": \"2026-04-23\", \"name\": \"Ulusal Egemenlik ve Çocuk Bayramı\", \"is_half_day\": false },\n    { \"id\": 3, \"date\": \"2026-05-01\", \"name\": \"Emek ve Dayanışma Günü\", \"is_half_day\": false }\n  ]\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="Yanıta global tatiller de dahil mi?">
+                    Evet. Yanıt hem şirkete özel (<code>company_id = şirket UUID</code>) hem de global (<code>company_id = NULL</code>)
+                    tatil günlerini birleştirir. Böylece tek bir çağrıyla tüm iş dışı günler elde edilir.
+                </c-callout>
+
+                <c-api-endpoint method="POST" url="/api/v1/holidays" summary="Şirkete özel tatil günü ekle (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "date",        "type": "date",    "required": true,  "desc": "Tatil tarihi (YYYY-MM-DD)." },
+                            { "name": "name",        "type": "string",  "required": true,  "desc": "Tatil adı (örn. 'Fabrika Kuruluş Yıl Dönümü')." },
+                            { "name": "is_half_day", "type": "boolean", "required": false, "desc": "Yarım gün tatil mi? true ise 0.5 iş günü sayılır. Varsayılan: false." }
+                        ],
+                        "request":  "{\n  \"date\": \"2026-10-30\",\n  \"name\": \"Şirket Kuruluş Günü\",\n  \"is_half_day\": false\n}",
+                        "response": "{\n  \"success\": true,\n  \"holiday\": { \"id\": 42, \"date\": \"2026-10-30\", \"name\": \"Şirket Kuruluş Günü\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="DELETE" url="/api/v1/holidays/:id" summary="Şirket tatil gününü sil (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"message\": \"Tatil günü silindi\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="warning" title="Dikkat: Yalnızca şirket tatilleri silinebilir">
+                    Global tatil günleri (Cumhuriyet Bayramı, Atatürk'ü Anma Günü vb.) bu endpoint ile silinemez.
+                    Global tatiller admin panelinden veya doğrudan veritabanından yönetilir.
+                </c-callout>
+
+                <c-api-endpoint method="POST" url="/api/v1/holidays/seed" summary="Türkiye resmi tatillerini yükle (admin)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "year", "type": "integer", "required": true, "desc": "Hangi yılın tatilleri yüklensin? (örn. 2026)" }
+                        ],
+                        "request":  "{\n  \"year\": 2026\n}",
+                        "response": "{\n  \"success\": true,\n  \"inserted\": 15,\n  \"year\": 2026\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="Seed işlemi tekrar çalıştırılabilir mi?">
+                    Evet. İşlem
+                    <c-tooltip text="UPSERT — INSERT veya UPDATE: kayıt yoksa ekle, varsa güncelle. Tekrar çalıştırıldığında veri çakışması oluşmaz." position="right"><span class="term">UPSERT</span></c-tooltip>
+                    kullanır; aynı tarih zaten kayıtlıysa yeni kayıt eklenmez, güncellenir. Yeni yıl başında tek çağrıyla o yılın tüm resmi tatilleri sisteme girilir.
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-href="notifications.html" prev-label="Bildirimler"
+                    next-href="settings.html" next-label="Ayarlar">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

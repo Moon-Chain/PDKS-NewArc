@@ -1,0 +1,53 @@
+/* c-callout: dikkat çekici bilgi kutusu, 7 renk varyantı */
+
+.c-callout {
+    display: block;
+    padding: var(--c-space-3);
+    margin: var(--c-space-3) 0;
+    background-color: var(--c-bg-subtle);
+    border-left: 0.25rem solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+}
+
+.c-callout__title {
+    margin-top: 0;
+}
+
+.c-callout__body>*:last-child {
+    margin-bottom: 0;
+}
+
+.c-callout--info {
+    background-color: rgba(13, 202, 240, .08);
+    border-left-color: var(--c-info);
+}
+
+.c-callout--warning {
+    background-color: rgba(255, 193, 7, .08);
+    border-left-color: var(--c-warning);
+}
+
+.c-callout--danger {
+    background-color: rgba(220, 53, 69, .08);
+    border-left-color: var(--c-danger);
+}
+
+.c-callout--success {
+    background-color: rgba(25, 135, 84, .08);
+    border-left-color: var(--c-success);
+}
+
+.c-callout--primary {
+    background-color: rgba(13, 110, 253, .08);
+    border-left-color: var(--c-primary);
+}
+
+.c-callout--secondary {
+    background-color: rgba(108, 117, 125, .08);
+    border-left-color: var(--c-secondary);
+}
+
+.c-callout--dark {
+    background-color: rgba(33, 37, 41, .08);
+    border-left-color: var(--c-dark);
+}

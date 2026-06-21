@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dosya Çalışma Sırası — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+
+        .flow-tree {
+            background: var(--c-bg-code, #111);
+            border: 1px solid var(--c-border);
+            border-left: 3px solid var(--c-primary);
+            border-radius: var(--c-radius);
+            padding: 1.25rem 1.5rem;
+            font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.79rem;
+            line-height: 1.95;
+            overflow-x: auto;
+            white-space: pre;
+            margin: var(--c-space-3) 0;
+            color: var(--c-text);
+        }
+        .ft-t   { color: #f0c040; font-weight: 700; }
+        .ft-f   { color: #7cb9f0; }
+        .ft-e   { color: #fb923c; }
+        .ft-d   { color: #c084fc; }
+        .ft-c   { color: #86efac; }
+        .ft-m   { color: #6b7280; font-style: italic; }
+        .ft-err { color: #f87171; }
+        .ft-ok  { color: #4ade80; }
+        .ft-n   { color: #fbbf24; }   /* sayı / sıra */
+
+        .step-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin: var(--c-space-3) 0; }
+        .step-table th, .step-table td { border: 1px solid var(--c-border); padding: .5rem .75rem; text-align: left; }
+        .step-table th { background: var(--c-bg-subtle); font-weight: 600; }
+        .step-table td:first-child { color: var(--c-primary); font-family: monospace; white-space: nowrap; }
+        .step-table tr:hover td { background: var(--c-bg-subtle); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="arch-files" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Mimari>Dosya Çalışma Sırası"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Dosya Çalışma Sırası</h1>
+
+                <p>
+                    Bu sayfa; <strong>derleme zamanında</strong> esbuild'in hangi dosyadan ne ürettiğini,
+                    <strong>sunucu başlarken</strong> Node.js modüllerinin hangi sırayla yüklendiğini ve
+                    <strong>tarayıcıda</strong> CSS, JS, Service Worker dosyalarının hangi öncelikte işlendiğini
+                    detaylandırır.
+                </p>
+
+                <c-callout variant="info" title="Renk rehberi">
+                    <span style="color:#f0c040;font-family:monospace;font-weight:700">Sarı</span> — komut / giriş noktası &nbsp;|&nbsp;
+                    <span style="color:#7cb9f0;font-family:monospace">Mavi</span> — dosya / modül &nbsp;|&nbsp;
+                    <span style="color:#c084fc;font-family:monospace">Mor</span> — üretilen çıktı &nbsp;|&nbsp;
+                    <span style="color:#86efac;font-family:monospace">Yeşil</span> — koşul / dal &nbsp;|&nbsp;
+                    <span style="color:#6b7280;font-family:monospace;font-style:italic">Gri</span> — yorum
+                </c-callout>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>1 — Derleme Zamanı (build.ts)</h2>
+
+                <p>
+                    <code>tsx build.ts</code> ya da <code>npm run build</code> çalıştırıldığında
+                    esbuild iki bağımsız bundle üretir. <strong>Code splitting</strong> açık olduğundan
+                    her sayfa kendi chunk'ına derlenir; ortak kod (<code>Alpine.js</code>, <code>ApiClient</code>
+                    vb.) yalnızca ana bundle'da yer alır.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">$ tsx build.ts</span>  <span class="ft-m">← veya: npm run build:watch (watch mode)</span>
+│
+├─ <span class="ft-m">── Kullanıcı Uygulaması ────────────────────────────────────────</span>
+│    ├─ Giriş: <span class="ft-f">public/ts/app.ts</span>
+│    ├─ esbuild.build({
+│    │      format: 'esm', splitting: true, bundle: true,
+│    │      outdir: 'public/js/'
+│    │  })
+│    └─ Üretilen dosyalar:
+│         ├─ <span class="ft-d">public/js/app.js</span>              <span class="ft-m">← ana bundle; Alpine.js, Router, StateManager dahil</span>
+│         ├─ <span class="ft-d">public/js/chunks/login-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/home-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/leaves-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/approvals-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/users-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/profile-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/movements-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/qr-[hash].js</span>
+│         ├─ <span class="ft-d">public/js/chunks/settings-[hash].js</span>
+│         └─ <span class="ft-d">public/js/chunks/notifications-[hash].js</span>
+│
+├─ <span class="ft-m">── Admin Paneli ────────────────────────────────────────────────</span>
+│    ├─ Giriş: <span class="ft-f">public/admin/ts/app-admin.ts</span>
+│    ├─ esbuild.build({ outdir: 'public/admin/js/' })
+│    └─ Üretilen dosyalar:
+│         ├─ <span class="ft-d">public/admin/js/app-admin.js</span>      <span class="ft-m">← admin ana bundle</span>
+│         ├─ <span class="ft-d">public/admin/js/chunks/dashboard-[hash].js</span>
+│         ├─ <span class="ft-d">public/admin/js/chunks/users-[hash].js</span>
+│         ├─ <span class="ft-d">public/admin/js/chunks/movements-[hash].js</span>
+│         └─ <span class="ft-d">... (her admin sayfası için chunk)</span>
+│
+├─ <span class="ft-m">── Service Worker versiyonu güncellendi ────────────────────────</span>
+│    ├─ Derleme çıktısının hash'i hesaplandı
+│    └─ <span class="ft-f">public/sw.js</span> içindeki <span class="ft-d">CACHE_VERSION</span> sabiti yeni hash ile değiştirildi
+│         <span class="ft-m">Böylece yeni deploy'da eski cache geçersiz kalır</span>
+│
+└─ <span class="ft-ok">✓ Derleme tamamlandı</span>  <span class="ft-m">(watch modunda: dosya değişiminde tekrar tetiklenir)</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>2 — Sunucu Modül Yükleme Sırası</h2>
+
+                <p>
+                    Node.js, <code>import</code> ifadelerini <strong>derinlik öncelikli</strong> (depth-first)
+                    olarak çözümler. Aşağıdaki sıra, <code>server.ts</code>'nin en üst satırından
+                    <code>app.listen()</code>'e kadar modüllerin belleğe alınma düzenini gösterir.
+                </p>
+
+                <table class="step-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Dosya</th>
+                            <th>Ne Yapar?</th>
+                            <th>Bağımlılıkları</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>dotenv</td>
+                            <td>.env dosyasını process.env'e yükler</td>
+                            <td>—</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>core/Logger.ts</td>
+                            <td>Winston singleton oluşturur, dosya + konsol transport</td>
+                            <td>winston, winston-daily-rotate-file</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>middleware/requestId.ts</td>
+                            <td>Her isteğe UUID ekleyen middleware factory</td>
+                            <td>uuid</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>middleware/rateLimit.ts</td>
+                            <td>globalLimiter oluşturur (100 istek / 15 dk)</td>
+                            <td>express-rate-limit</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>core/AppError.ts</td>
+                            <td>Özel hata sınıfı tanımlar</td>
+                            <td>—</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>db/connection.ts</td>
+                            <td>pg.Pool oluşturur (henüz bağlantı yok — lazy)</td>
+                            <td>pg</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>core/BaseRepository.ts</td>
+                            <td>Soyut repository sınıfı (SQL yardımcıları)</td>
+                            <td>db/connection</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>repositories/*.ts</td>
+                            <td>Her entity için somut repository sınıfları</td>
+                            <td>BaseRepository</td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td>core/BaseService.ts</td>
+                            <td>Soyut servis sınıfı (yetki yardımcıları)</td>
+                            <td>AppError</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>services/*.ts</td>
+                            <td>Her domain için iş mantığı servisleri</td>
+                            <td>BaseService + ilgili Repo'lar</td>
+                        </tr>
+                        <tr>
+                            <td>11</td>
+                            <td>routes/v1/*.ts</td>
+                            <td>Express Router'ları (handler'lar servisleri çağırır)</td>
+                            <td>ilgili Service'ler</td>
+                        </tr>
+                        <tr>
+                            <td>12</td>
+                            <td>events/emitter.ts</td>
+                            <td>EventEmitter singleton</td>
+                            <td>node:events</td>
+                        </tr>
+                        <tr>
+                            <td>13</td>
+                            <td>events/setup.ts</td>
+                            <td>emitter.on() çağrılarını kaydeder</td>
+                            <td>emitter, NotificationService, Logger</td>
+                        </tr>
+                        <tr>
+                            <td>14</td>
+                            <td>server.ts (devam)</td>
+                            <td>Middleware + route bağlama + listen()</td>
+                            <td>yukarıdaki hepsi</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>3 — Tarayıcıda Dosya Yükleme Sırası</h2>
+
+                <p>
+                    Tarayıcı <code>index.html</code>'yi parse ettiğinde dosyalar belirli bir öncelik
+                    sırasıyla yüklenir. Aşağıdaki ağaç bu sırayı ve her dosyanın tarayıcı üzerindeki
+                    etkisini gösterir.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">Tarayıcı index.html'yi parse etmeye başladı</span>
+│
+├─ <span class="ft-n">[1]</span> <span class="ft-f">css/components.css</span>  <span class="ft-m">← render-blocking; indirilene kadar First Paint olmaz</span>
+│        Buton, form, kart, modal stilleri yüklendi
+│
+├─ <span class="ft-n">[2]</span> <span class="ft-f">css/style.css</span>  <span class="ft-m">← render-blocking</span>
+│        CSS değişkenleri (--color-*, --radius, vb.)
+│        Dark theme desteği yüklendi
+│
+├─ <span class="ft-n">[3]</span> <span class="ft-f">manifest.json</span>  <span class="ft-m">← arka planda; render'ı engellemez</span>
+│        PWA kurulum bilgisi (app_name, icons, start_url)
+│
+├─ <span class="ft-n">[4]</span> <span class="ft-m">── HTML body parse tamamlandı ──────────────────────────────</span>
+│        3 boş container DOM'da: #header-container, #app, #nav-container
+│        ↳ <span class="ft-m">İlk görüntü: tamamen boş, yükleniyor gibi</span>
+│
+├─ <span class="ft-n">[5]</span> <span class="ft-f">js/app.js</span>  <span class="ft-m">← defer; HTML parse bitince yüklenir, render'ı engellemez</span>
+│        ├─ Alpine.js (app.js içinde bundle'lı)
+│        ├─ Router, StateManager, ApiClient, EventStream
+│        ├─ TopBar ve BottomNav component class'ları
+│        └─ <span class="ft-m">Sayfa class'ları (LoginPage, HomePage...) HENÜZ değil — lazy chunk'lar</span>
+│
+├─ <span class="ft-n">[6]</span> <span class="ft-m">app.js çalıştı → init() tetiklendi</span>
+│        ├─ <span class="ft-f">api.get('/api/v1/auth/me')</span>  → ağ isteği
+│        └─ <span class="ft-m">Yanıt bekleniyor...</span>
+│
+├─ <span class="ft-n">[7]</span> <span class="ft-m">Oturum yanıtı geldi → router._render('/home')</span>
+│        └─ <span class="ft-f">import('./pages/HomePage.js')</span>  → dinamik import
+│             └─ <span class="ft-f">js/chunks/home-[hash].js</span>  ağdan indirildi
+│                  <span class="ft-m">İlk ziyarette ağdan; sonraki ziyaretlerde SW cache'inden</span>
+│
+├─ <span class="ft-n">[8]</span> <span class="ft-m">HomePage render edildi → ekran dolu</span>
+│        ↳ <span class="ft-ok">✓ İlk Anlamlı İçerik (FCP)</span>
+│
+└─ <span class="ft-n">[9]</span> <span class="ft-f">sw.js</span>  <span class="ft-m">← arka planda; render'dan sonra kaydedilir</span>
+         ├─ İlk ziyaret: install event → cache oluşturuldu
+         │    ├─ CSS, JS bundle'lar, ikonlar → CacheFirst
+         │    └─ /offline.html → fallback olarak cache'e alındı
+         └─ Sonraki ziyaretler: activate event → eski cache temizlendi</pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>4 — Sayfa Chunk'ı Akışı (lazy import)</h2>
+
+                <p>
+                    Kullanıcı hiçbir zaman <code>/leaves</code> sayfasına gitmemişse,
+                    <code>leaves-[hash].js</code> dosyası asla indirilmez.
+                    İlk kez <code>/leaves</code>'e gidildiğinde şu akış gerçekleşir:
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">Kullanıcı ilk kez /leaves sayfasına geçti</span>
+│
+├─ <span class="ft-f">router._render('/leaves')</span>  → <span class="ft-f">routes['/leaves']()</span>
+│    └─ <span class="ft-f">import('./pages/LeavesPage.js')</span>  → dinamik import
+│
+├─ <span class="ft-m">── Tarayıcı ağ isteği gönderdi ─────────────────────────────────</span>
+│    ├─ SW intercept etti: <span class="ft-f">js/chunks/leaves-[hash].js</span>
+│    ├─ <span class="ft-c">[SW cache'de yok — ilk kez]</span>
+│    │    ├─ Ağdan indirildi
+│    │    ├─ Cache'e kaydedildi
+│    │    └─ Tarayıcıya döndürüldü
+│    └─ <span class="ft-c">[SW cache'de var — sonraki ziyaret]</span>
+│         └─ Doğrudan cache'den döndürüldü  <span class="ft-m">(ağa çıkılmadı)</span>
+│
+├─ <span class="ft-f">LeavesPage class</span> parse edildi &amp; bellekte hazır
+├─ <span class="ft-f">new LeavesPage(container).render()</span>  → sayfa DOM'a yazıldı
+└─ <span class="ft-ok">✓ LeavesPage ekranda</span>  <span class="ft-m">(sonraki gidişlerde SW'dan anında gelir)</span></pre>
+
+                <c-callout variant="tip" title="Build versiyonu ve cache geçersizleştirme">
+                    Dosya adlarındaki <code>[hash]</code> kısmı esbuild tarafından dosya içeriğine
+                    göre otomatik hesaplanır. Kod değiştiğinde hash değişir → SW eski cache'i siler →
+                    tarayıcı yeni dosyayı indirir. Değişmeyen chunk'lar cache'de aynen kalır
+                    → gereksiz indirme olmaz.
+                </c-callout>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>5 — Service Worker Dosya Akışı</h2>
+
+                <pre class="flow-tree"><span class="ft-t">sw.js ilk kez kaydedildi (navigator.serviceWorker.register)</span>
+│
+├─ <span class="ft-m">── install event ───────────────────────────────────────────────</span>
+│    ├─ CACHE_VERSION sabiti: <span class="ft-d">'pdks-v[hash]'</span>
+│    ├─ Cache.addAll([])  → önceden belirtilen statik dosyalar cache'e alındı
+│    │    ├─ /offline.html
+│    │    ├─ /css/style.css
+│    │    ├─ /css/components.css
+│    │    └─ /icons/*.png
+│    └─ <span class="ft-f">self.skipWaiting()</span>  → anında aktif ol
+│
+├─ <span class="ft-m">── activate event ──────────────────────────────────────────────</span>
+│    ├─ Eski cache'ler silindi  <span class="ft-m">(CACHE_VERSION eşleşmeyenler)</span>
+│    └─ <span class="ft-f">clients.claim()</span>  → açık sekmelerin kontrolünü al
+│
+└─ <span class="ft-m">── fetch event (her ağ isteğinde) ──────────────────────────────</span>
+     ├─ <span class="ft-c">[/api/* isteği]</span>  → <span class="ft-d">NetworkFirst</span>
+     │    ├─ Ağdan dene → başarıysa döndür, cache'e kaydet
+     │    └─ <span class="ft-c">[ağ yoksa]</span>  → cache'den döndür
+     ├─ <span class="ft-c">[JS/CSS/İkon isteği]</span>  → <span class="ft-d">CacheFirst</span>
+     │    ├─ Cache'de varsa anında döndür
+     │    └─ <span class="ft-c">[cache'de yoksa]</span>  → ağdan indir, cache'e kaydet
+     └─ <span class="ft-c">[HTML sayfası isteği (navigate)]</span>  → <span class="ft-d">NetworkFirst</span>
+          ├─ Ağdan dene
+          └─ <span class="ft-c">[ağ yoksa]</span>  → /offline.html fallback döndür</pre>
+
+                <c-pagination-nav
+                    prev-label="DOM Yapısı"       prev-href="arch-dom.html"
+                    next-label="Sınıf Hiyerarşisi" next-href="arch-classes.html">
+                </c-pagination-nav>
+            </div>
+
+            <c-toc selector=".page-inner h2"></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+</body>
+
+</html>

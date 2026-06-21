@@ -23,6 +23,9 @@ export class Router {
   }
 
   async _render(path: string) {
+    if (path.length > 1 && path.endsWith('/')) {
+      path = path.slice(0, -1);
+    }
     if (!state.get('user') && path !== '/login') {
       return this.navigate('/login');
     }

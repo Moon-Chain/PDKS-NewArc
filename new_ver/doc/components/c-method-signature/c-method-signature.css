@@ -1,0 +1,50 @@
+/* c-method-signature: TypeScript stili fonksiyon imzası gösterimi */
+
+c-param {
+    display: none;
+}
+
+.c-method-signature {
+    display: block;
+    margin: var(--c-space-3) 0;
+}
+
+.c-ms__pre {
+    background-color: var(--c-bg-subtle);
+    border: 1px solid var(--c-border);
+    border-left: 3px solid var(--c-primary);
+    border-radius: var(--c-radius);
+    padding: var(--c-space-2) var(--c-space-3);
+    margin: 0;
+    overflow-x: auto;
+    font-size: 0.9rem;
+}
+
+.c-ms__pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+}
+
+.c-ms__fn-name {
+    color: var(--c-primary);
+    font-weight: 600;
+}
+
+.c-ms__param-name {
+    color: var(--c-text);
+}
+
+.c-ms__param-type {
+    color: var(--c-info);
+}
+
+.c-ms__return {
+    color: var(--c-success);
+}
+
+.c-ms__punct,
+.c-ms__comma {
+    color: var(--c-text-muted);
+}

@@ -1,0 +1,26 @@
+/* c-copy-button: bağımsız kopyala butonu */
+
+.c-copy-button {
+    display: inline-block;
+}
+
+.c-copy-button__btn {
+    padding: 0.2rem 0.75rem;
+    background-color: var(--c-bg-subtle);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    color: var(--c-text);
+    font-size: 0.85rem;
+    font-family: var(--c-font-family);
+    cursor: pointer;
+}
+
+.c-copy-button__btn:hover {
+    border-color: var(--c-primary);
+    color: var(--c-primary);
+}
+
+.c-copy-button__btn--copied {
+    border-color: var(--c-success);
+    color: var(--c-success);
+}

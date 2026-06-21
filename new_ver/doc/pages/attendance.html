@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devam Takibi — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-tabs/c-tabs.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-steps/c-steps.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-alert/c-alert.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="attendance" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Devam Takibi"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Devam Takibi</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/attendance</code> — Tüm endpoint'ler kimlik doğrulama gerektirir.
+                </p>
+                <p>
+                    Devam takibi, çalışanların işyerine giriş ve çıkış yaptıklarını kayıt altına alan modüldür.
+                    Giriş/çıkış işlemi
+                    <c-tooltip text="QR Kod — kamerayla okunan 2 boyutlu barkod. PDKS'te ofis girişinde ekranda dönen ve qr_secret ile imzalanmış bir kod gösterilir." position="top"><span class="term">QR kod</span></c-tooltip>
+                    taranarak yapılır. İstenirse uzaktan giriş (
+                    <c-tooltip text="GPS koordinatları ile yapılan giriş. Ofise fiziksel olarak gitmeye gerek kalmadan konumla birlikte kayıt oluşturulur." position="top"><span class="term">remote check-in</span></c-tooltip>)
+                    da desteklenir.
+                </p>
+
+                <h2>QR Giriş/Çıkış Nasıl Çalışır?</h2>
+
+                <c-steps>
+                    <c-step title="Ofis ekranında QR kod görüntülenir">
+                        <p>
+                            Admin paneli <code>GET /api/v1/attendance/qr</code> çağrısıyla sunucudan bir
+                            <c-tooltip text="QR Kod — şifreli bir değeri (qrValue) görsel olarak gösteren barkod. PDKS'te bu değer qr_secret ile türetilir ve birkaç saniyede bir yenilenir." position="right"><span class="term">QR kod</span></c-tooltip>
+                            alır ve büyük ekranda gösterir.
+                        </p>
+                    </c-step>
+                    <c-step title="Çalışan QR kodu okuttur">
+                        <p>Çalışan cep telefonu veya okuyucuyla kodu tarar. Uygulama içindeki tarayıcı, okunan değeri alır.</p>
+                    </c-step>
+                    <c-step title="Sunucuya giriş/çıkış isteği gönderilir">
+                        <p>
+                            <code>POST /api/v1/attendance</code> çağrısında <code>qrValue</code> gönderilir.
+                            Sunucu, bu değeri şirketin <code>qr_secret</code>'i ile doğrular.
+                        </p>
+                    </c-step>
+                    <c-step title="Kayıt oluşturulur ve SSE ile yayınlanır">
+                        <p>
+                            Doğrulama geçerliyse <code>attendance_logs</code> tablosuna kayıt eklenir.
+                            Aynı anda
+                            <c-tooltip text="SSE (Server-Sent Events) — sunucunun bağlı istemcilere anlık mesaj gönderdiği teknoloji. PDKS'te devam kayıtları SSE üzerinden gerçek zamanlı iletilir." position="right"><span class="term">SSE</span></c-tooltip>
+                            kanalı üzerinden admin/mudur ekranlarına anlık bildirim gider.
+                        </p>
+                    </c-step>
+                </c-steps>
+
+                <c-callout variant="info" title="30 Saniye Cooldown">
+                    Aynı kullanıcı 30 saniye içinde tekrar giriş/çıkış yapamaz. Bu kural, yanlışlıkla tekrarlanan kayıtları önler.
+                    Erken deneme yapılırsa <code>429</code> yanıtında <code>cooldownMs</code> (beklenmesi gereken milisaniye) bilgisi döner.
+                </c-callout>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="POST" url="/api/v1/attendance" summary="Giriş veya çıkış kaydı oluştur (QR ile)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "type",      "type": "\"in\" | \"out\"", "required": true,  "desc": "Kayıt türü: 'in' = giriş, 'out' = çıkış." },
+                            { "name": "qrValue",   "type": "string",          "required": true,  "desc": "QR kodundan okunan değer. Sunucu bunu qr_secret ile doğrular." },
+                            { "name": "latitude",  "type": "number",          "required": false, "desc": "GPS enlemi. Uzaktan giriş için isteğe bağlı gönderilir." },
+                            { "name": "longitude", "type": "number",          "required": false, "desc": "GPS boylamı. Uzaktan giriş için isteğe bağlı gönderilir." },
+                            { "name": "isOffline", "type": "boolean",         "required": false, "desc": "Offline senkronizasyon bayrağı. İnternet yokken kayıt yapıldıysa true gönderilir." }
+                        ],
+                        "request":  "{\n  \"type\": \"in\",\n  \"qrValue\": \"pdks-secret-abc123\",\n  \"latitude\": 41.0082,\n  \"longitude\": 28.9784\n}",
+                        "response": "{\n  \"success\": true,\n  \"log\": {\n    \"id\": \"uuid-...\",\n    \"user_id\": \"uuid-...\",\n    \"type\": \"in\",\n    \"timestamp\": \"2026-06-16T09:02:00.000Z\",\n    \"is_remote\": false,\n    \"status\": \"success\"\n  }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="GET" url="/api/v1/attendance/today" summary="Bugünkü giriş/çıkış kayıtlarını ve anlık durumu getir">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"logs\": [\n    { \"id\": \"uuid-...\", \"type\": \"in\",  \"timestamp\": \"2026-06-16T09:01:00.000Z\" },\n    { \"id\": \"uuid-...\", \"type\": \"out\", \"timestamp\": \"2026-06-16T12:30:00.000Z\" }\n  ],\n  \"status\": \"out\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="GET" url="/api/v1/attendance/status" summary="Kullanıcı şu an içeride mi, dışarıda mı?">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"isInside\": true,\n  \"lastEntry\": {\n    \"type\": \"in\",\n    \"timestamp\": \"2026-06-16T09:01:00.000Z\"\n  },\n  \"cooldownMs\": 0\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="GET" url="/api/v1/attendance/qr" summary="Ofis ekranı için QR kod üret">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"qrValue\": \"pdks-TOKEN\",\n  \"qrDataUrl\": \"data:image/png;base64,...\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="QR kod ne sıklıkla yenilenir?">
+                    <code>qrValue</code> değeri <code>qr_secret</code>'e göre türetilir. Şirket ayarlarından sırları değiştirildiğinde tüm eski kodlar geçersiz olur.
+                    Güvenlik için ofis ekranlarının periyodik olarak bu endpoint'i çağırması önerilir.
+                </c-callout>
+
+                <c-api-endpoint method="GET" url="/api/v1/attendance/stats" summary="Bugünkü devam istatistikleri (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"present\": 12,\n  \"onLeave\": 2,\n  \"late\": 3,\n  \"absent\": 5\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="GET" url="/api/v1/attendance" summary="Sayfalı devam kayıtları listesi">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "page",   "type": "integer", "required": false, "desc": "Sayfa numarası (varsayılan: 1)." },
+                            { "name": "limit",  "type": "integer", "required": false, "desc": "Sayfa başı kayıt sayısı (varsayılan: 50)." },
+                            { "name": "month",  "type": "string",  "required": false, "desc": "Ay filtresi YYYY-MM formatında (örn. 2026-06)." },
+                            { "name": "userId", "type": "UUID",    "required": false, "desc": "Belirli bir kullanıcının kayıtları (admin/mudur için)." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"rows\": [\n    {\n      \"id\": \"uuid-...\",\n      \"user_id\": \"uuid-...\",\n      \"user_name\": \"Ahmet Yılmaz\",\n      \"type\": \"in\",\n      \"timestamp\": \"2026-06-16T09:01:00.000Z\",\n      \"is_remote\": false,\n      \"manual_entry\": false,\n      \"status\": \"success\"\n    }\n  ],\n  \"total\": 128\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="info" title="Rol bazlı filtreleme">
+                    <strong>Personel:</strong> yalnızca kendi kayıtlarını görür.<br>
+                    <strong>Admin / Müdür:</strong> <code>userId</code> parametresiyle istenen çalışanı filtreleyebilir ya da tüm şirket kayıtlarını getirebilir.
+                </c-callout>
+
+                <h2>Manuel Kayıt İşlemleri</h2>
+                <p>
+                    Admin ve müdür, çalışanlar adına
+                    <c-tooltip text="Manuel kayıt — QR okutulmadan sisteme eklenen giriş/çıkış kaydı. Geçmişe dönük düzeltme veya unutulan girişler için kullanılır." position="top"><span class="term">manuel kayıt</span></c-tooltip>
+                    ekleyebilir, mevcut kayıtları güncelleyebilir veya silebilir.
+                </p>
+
+                <c-api-endpoint method="POST" url="/api/v1/attendance/manual" summary="Manuel devam kaydı ekle (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "userId", "type": "UUID",             "required": true, "desc": "Kaydın ekleneceği kullanıcının UUID'si." },
+                            { "name": "type",   "type": "\"in\" | \"out\"", "required": true, "desc": "Kayıt türü." },
+                            { "name": "date",   "type": "string",           "required": true, "desc": "Tarih (YYYY-MM-DD formatında, örn. 2026-06-16)." },
+                            { "name": "time",   "type": "string",           "required": true, "desc": "Saat (HH:MM formatında, örn. 09:00)." }
+                        ],
+                        "request":  "{\n  \"userId\": \"uuid-...\",\n  \"type\": \"in\",\n  \"date\": \"2026-06-16\",\n  \"time\": \"09:00\"\n}",
+                        "response": "{\n  \"success\": true,\n  \"log\": { \"id\": \"uuid-...\", \"manual_entry\": true, \"status\": \"pending\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/attendance/:id" summary="Mevcut kaydı güncelle (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "type", "type": "\"in\" | \"out\"", "required": false, "desc": "Güncellenecek kayıt türü." },
+                            { "name": "date", "type": "string",           "required": false, "desc": "Yeni tarih (YYYY-MM-DD)." },
+                            { "name": "time", "type": "string",           "required": false, "desc": "Yeni saat (HH:MM)." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"log\": { \"id\": \"uuid-...\", \"type\": \"in\", \"timestamp\": \"2026-06-16T08:45:00.000Z\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="DELETE" url="/api/v1/attendance/:id" summary="Kaydı sil — soft delete (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"message\": \"Kayıt silindi\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="Soft Delete nedir?">
+                    Silme işlemi kayıtı fiziksel olarak kaldırmaz; yalnızca <code>is_deleted = true</code> yapar.
+                    Bu sayede yanlışlıkla silinen kayıtlar geri getirilebilir ve silme tarihi <code>audit_log</code>'a düşer.
+                </c-callout>
+
+                <c-api-endpoint method="GET" url="/api/v1/attendance/pending-manual" summary="Onay bekleyen manuel kayıtları listele (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"rows\": [\n    {\n      \"id\": \"uuid-...\",\n      \"user_name\": \"Zeynep Kaya\",\n      \"type\": \"in\",\n      \"timestamp\": \"2026-06-15T09:00:00.000Z\",\n      \"manual_entry\": true,\n      \"status\": \"pending\"\n    }\n  ]\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/attendance/:id/approve-manual" summary="Bekleyen manuel kaydı onayla (admin / mudur)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"log\": { \"id\": \"uuid-...\", \"status\": \"success\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-pagination-nav
+                    prev-href="auth.html" prev-label="Kimlik Doğrulama"
+                    next-href="users.html" next-label="Kullanıcılar">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-tabs/c-tabs.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-steps/c-steps.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-alert/c-alert.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,49 @@
+/* c-font-scale: tipografi ölçeği görselleştiricisi */
+
+.c-font-scale {
+    display: flex;
+    flex-direction: column;
+    margin: var(--c-space-3) 0;
+}
+
+.c-font-scale__row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--c-space-3);
+    padding: var(--c-space-2) 0;
+    border-bottom: 1px solid var(--c-border);
+}
+
+.c-font-scale__row:first-child {
+    border-top: 1px solid var(--c-border);
+}
+
+.c-font-scale__sample {
+    flex: 1;
+    color: var(--c-text);
+    line-height: 1.2;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.c-font-scale__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.c-font-scale__name {
+    font-size: var(--c-font-size-xs);
+    color: var(--c-primary);
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.c-font-scale__value {
+    font-size: var(--c-font-size-xs);
+    color: var(--c-text-muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}

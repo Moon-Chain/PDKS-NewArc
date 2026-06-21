@@ -1,0 +1,19 @@
+/* c-read-progress: sayfa tepesinde scroll bazlı okuma ilerleme çubuğu */
+
+.c-read-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 999;
+    pointer-events: none;
+    background: transparent;
+}
+
+.c-read-progress__bar {
+    height: 100%;
+    width: 0;
+    background-color: var(--c-primary);
+    transition: width 0.08s linear;
+}

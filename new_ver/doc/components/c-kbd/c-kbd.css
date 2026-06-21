@@ -1,0 +1,33 @@
+/* c-kbd: klavye kısayolu gösterimi */
+
+.c-kbd {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15em;
+    font-size: 0.875em;
+    font-family: var(--c-font-family);
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.c-kbd__key {
+    display: inline-block;
+    padding: 0.18em 0.45em;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--c-text);
+    background-color: var(--c-bg-subtle);
+    border: 1px solid var(--c-border);
+    border-bottom-width: 2px;
+    border-radius: var(--c-radius-sm);
+    white-space: nowrap;
+    box-shadow: 0 1px 0 var(--c-border);
+    line-height: 1.4;
+}
+
+.c-kbd__sep {
+    color: var(--c-text-muted);
+    font-size: 0.8em;
+    font-weight: 400;
+    user-select: none;
+}

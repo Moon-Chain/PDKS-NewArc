@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Denetim Günlüğü — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="admin-audit" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Admin Panel>Denetim Günlüğü"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Denetim Günlüğü</h1>
+
+                <p>
+                    <code>GET /api/v1/admin/audit</code> —
+                    <c-badge variant="danger">audit:view</c-badge> yetkisi gereklidir (yalnızca <c-badge variant="danger">admin</c-badge>).
+                </p>
+                <p>
+                    Denetim günlüğü (audit log), sistemdeki tüm kritik işlemlerin "kim, ne zaman, ne yaptı, neyi değiştirdi" bilgisiyle kayıt altına alındığı tablodur.
+                    Bir kullanıcı izin onayladığında, şifre sıfırlandığında veya şirket ayarları değiştirildiğinde bu tablo otomatik olarak güncellenir.
+                </p>
+
+                <c-callout variant="info" title="old_value ve new_value neden önemli?">
+                    Her kayıt, işlemden önceki (<code>old_value</code>) ve sonraki (<code>new_value</code>) durumu
+                    <c-tooltip text="JSONB — PostgreSQL'in ikili JSON alanı. Yapısal veriler, dinamik sütunlara gerek kalmadan tek bir sütunda saklanabilir. Üzerinde indeks oluşturulabilir ve hızlı sorgulanabilir." position="right"><span class="term">JSONB</span></c-tooltip>
+                    olarak saklar.
+                    Örneğin bir izin <code>pending</code>'den <code>approved</code>'a geçtiğinde, her iki durum da logda görünür.
+                    Bu sayede "önceden ne vardı?" sorusu yanıtlanabilir.
+                </c-callout>
+
+                <h2>Endpoint</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/admin/audit" summary="Denetim kayıtlarını filtreli ve sayfalı listele">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "page",   "type": "integer", "required": false, "desc": "Sayfa numarası (varsayılan: 1)." },
+                            { "name": "limit",  "type": "integer", "required": false, "desc": "Sayfa başı kayıt sayısı (varsayılan: 20)." },
+                            { "name": "actor",  "type": "string",  "required": false, "desc": "İşlemi yapan kullanıcının adına göre arama (büyük/küçük harf duyarsız)." },
+                            { "name": "action", "type": "string",  "required": false, "desc": "Aksiyon türü filtresi (örn. leave:approved)." },
+                            { "name": "from",   "type": "ISO date","required": false, "desc": "Başlangıç tarihi (örn. 2026-06-01T00:00:00Z)." },
+                            { "name": "to",     "type": "ISO date","required": false, "desc": "Bitiş tarihi (örn. 2026-06-30T23:59:59Z)." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"rows\": [\n    {\n      \"id\": \"uuid-...\",\n      \"actor_id\": \"uuid-...\",\n      \"actor_name\": \"Admin Kullanıcı\",\n      \"action\": \"leave:approved\",\n      \"target_table\": \"leave_requests\",\n      \"target_id\": \"uuid-...\",\n      \"old_value\": { \"status\": \"pending\" },\n      \"new_value\": { \"status\": \"approved\" },\n      \"ip_address\": \"192.168.1.100\",\n      \"created_at\": \"2026-06-16T10:00:00.000Z\"\n    }\n  ],\n  \"total\": 248\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <h2>Yanıt Alanı Açıklamaları</h2>
+                <table>
+                    <thead><tr><th>Alan</th><th>Açıklama</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>actor_id</code></td><td>İşlemi yapan kullanıcının UUID'si.</td></tr>
+                        <tr><td><code>actor_name</code></td><td>İşlemi yapan kullanıcının adı (silinmiş olsa bile log'da korunur).</td></tr>
+                        <tr><td><code>action</code></td><td>Ne yapıldı? (Tam liste aşağıda.)</td></tr>
+                        <tr><td><code>target_table</code></td><td>Hangi veritabanı tablosunda değişiklik yapıldı?</td></tr>
+                        <tr><td><code>target_id</code></td><td>Etkilenen kaydın UUID'si.</td></tr>
+                        <tr><td><code>old_value</code></td><td>İşlemden önceki değer. Yeni oluşturmalarda <code>NULL</code>.</td></tr>
+                        <tr><td><code>new_value</code></td><td>İşlemden sonraki değer. Silmelerde <code>NULL</code>.</td></tr>
+                        <tr>
+                            <td><code>ip_address</code></td>
+                            <td>
+                                İşlemin yapıldığı
+                                <c-tooltip text="IP Adresi — ağda bir cihazı tanımlayan sayısal adres. Audit log'da güvenlik araştırmalarında (örn. şüpheli giriş) kullanılır." position="right"><span class="term">IP adresi</span></c-tooltip>.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Kayıt Edilen Tüm Aksiyonlar</h2>
+                <p>Aşağıdaki olaylar gerçekleştiğinde otomatik olarak <code>audit_log</code> tablosuna kayıt düşülür:</p>
+
+                <table>
+                    <thead><tr><th>Aksiyon Kodu</th><th>Ne Zaman Oluşur?</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>leave:requested</code></td><td>Kullanıcı yeni izin talebi oluşturdu.</td></tr>
+                        <tr><td><code>leave:approved</code></td><td>Yönetici izni onayladı.</td></tr>
+                        <tr><td><code>leave:rejected</code></td><td>Yönetici izni reddetti.</td></tr>
+                        <tr><td><code>leave:cancelled</code></td><td>Kullanıcı kendi talebini iptal etti.</td></tr>
+                        <tr><td><code>overtime:requested</code></td><td>Kullanıcı fazla mesai talebi oluşturdu.</td></tr>
+                        <tr><td><code>overtime:approved</code></td><td>Yönetici fazla mesaiyi onayladı.</td></tr>
+                        <tr><td><code>overtime:rejected</code></td><td>Yönetici fazla mesaiyi reddetti.</td></tr>
+                        <tr><td><code>attendance:manual_created</code></td><td>Admin/müdür manuel devam kaydı ekledi.</td></tr>
+                        <tr><td><code>attendance:updated</code></td><td>Devam kaydı güncellendi.</td></tr>
+                        <tr><td><code>attendance:deleted</code></td><td>Devam kaydı silindi (soft delete).</td></tr>
+                        <tr><td><code>user:created</code></td><td>Yeni kullanıcı oluşturuldu.</td></tr>
+                        <tr><td><code>user:updated</code></td><td>Kullanıcı bilgileri güncellendi.</td></tr>
+                        <tr><td><code>user:deleted</code></td><td>Kullanıcı devre dışı bırakıldı (soft delete).</td></tr>
+                        <tr><td><code>password:reset</code></td><td>Admin, kullanıcının şifresini sıfırladı.</td></tr>
+                        <tr><td><code>report_download</code></td><td>Excel raporu indirildi.</td></tr>
+                        <tr><td><code>settings:updated</code></td><td>Şirket ayarları değiştirildi.</td></tr>
+                    </tbody>
+                </table>
+
+                <c-callout variant="tip" title="Gelişmiş filtreleme örneği">
+                    Geçen hafta Admin'in yaptığı tüm izin işlemlerini görmek için:
+                    <code>GET /api/v1/admin/audit?actor=Admin&amp;action=leave&amp;from=2026-06-09T00:00:00Z&amp;to=2026-06-15T23:59:59Z</code>
+                    <br><br>
+                    <strong>Not:</strong> <code>action</code> parametresi tam eşleşme değil, içerme (ILIKE <code>%değer%</code>) ile arar.
+                    Yani <code>action=leave</code> hem <code>leave:approved</code> hem <code>leave:rejected</code>'ı getirir.
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-href="admin-dashboard.html" prev-label="Dashboard"
+                    next-href="database.html" next-label="Şema Diyagramı">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

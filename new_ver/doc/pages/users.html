@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcılar — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-tabs/c-tabs.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-alert/c-alert.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="users" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Kullanıcılar"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Kullanıcılar</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/users</code>
+                </p>
+                <p>
+                    Kullanıcılar modülü, şirket çalışanlarının oluşturulmasını, güncellenmesini ve yönetilmesini sağlar.
+                    Her kullanıcı bir şirkete (<code>company_id</code>) bağlıdır ve yalnızca kendi şirketinin verilerine erişebilir.
+                </p>
+
+                <c-callout variant="info" title="Yetki Seviyeleri">
+                    <strong>user:view</strong> — liste ve profil görüntüleme (admin, mudur, takım lideri)<br>
+                    <strong>user:manage</strong> — oluşturma, güncelleme, silme, şifre sıfırlama (admin, mudur)
+                    <br><br>
+                    <c-badge variant="secondary">personel</c-badge> rolündeki kullanıcılar bu endpoint'lere erişemez.
+                    Kendi profillerini yalnızca <code>GET /api/v1/auth/me</code> ile görebilirler.
+                </c-callout>
+
+                <h2>Kullanıcı Veri Modeli</h2>
+                <p>Veritabanındaki <code>users</code> tablosunun her alanı ve ne anlama geldiği:</p>
+
+                <table>
+                    <thead><tr><th>Alan</th><th>Tip</th><th>Açıklama</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><code>id</code></td>
+                            <td>
+                                <c-tooltip text="UUID (Universally Unique Identifier) — küresel ölçekte eşsizliği garanti eden 128 bitlik kimlik kodu. Örn: 550e8400-e29b-41d4-a716-446655440000" position="right"><span class="term">UUID</span></c-tooltip>
+                            </td>
+                            <td>Birincil anahtar. Otomatik üretilir, değiştirilemez.</td>
+                        </tr>
+                        <tr>
+                            <td><code>personnel_id</code></td>
+                            <td>string</td>
+                            <td>Sicil numarası. Aynı şirkette iki kullanıcı aynı sicile sahip olamaz.</td>
+                        </tr>
+                        <tr>
+                            <td><code>name</code></td>
+                            <td>string</td>
+                            <td>Ad soyad.</td>
+                        </tr>
+                        <tr>
+                            <td><code>title</code></td>
+                            <td>string</td>
+                            <td>Unvan veya departman (örn. "Yazılım Geliştirici").</td>
+                        </tr>
+                        <tr>
+                            <td><code>email</code></td>
+                            <td>string</td>
+                            <td>E-posta adresi (opsiyonel).</td>
+                        </tr>
+                        <tr>
+                            <td><code>role</code></td>
+                            <td>enum</td>
+                            <td>
+                                <c-badge variant="danger">admin</c-badge>
+                                <c-badge variant="warning">mudur</c-badge>
+                                <c-badge variant="info">takim_lideri</c-badge>
+                                <c-badge variant="secondary">personel</c-badge>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>manager_id</code></td>
+                            <td>UUID</td>
+                            <td>Bu kullanıcının bağlı olduğu yöneticinin ID'si. Bağlı olmayabilir (<code>NULL</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>leave_balance</code></td>
+                            <td>integer</td>
+                            <td>Kalan yıllık izin günü sayısı. Varsayılan: 14. İzin onaylanınca düşülür.</td>
+                        </tr>
+                        <tr>
+                            <td><code>start_date</code></td>
+                            <td>date</td>
+                            <td>İşe başlama tarihi (YYYY-MM-DD).</td>
+                        </tr>
+                        <tr>
+                            <td><code>can_remote_check_in</code></td>
+                            <td>boolean</td>
+                            <td>Uzaktan giriş izni. <code>true</code> ise bu kullanıcı ofise gitmeden giriş yapabilir.</td>
+                        </tr>
+                        <tr>
+                            <td><code>avatar_path</code></td>
+                            <td>string</td>
+                            <td>Profil fotoğrafının sunucudaki yolu. <code>NULL</code> olabilir.</td>
+                        </tr>
+                        <tr>
+                            <td><code>is_deleted</code></td>
+                            <td>boolean</td>
+                            <td>
+                                <c-tooltip text="Soft Delete — veriyi fiziksel olarak silmek yerine 'silinmiş' olarak işaretleme. is_deleted=true olan kullanıcılar listelenmez ama veritabanında korunur." position="right"><span class="term">Soft delete</span></c-tooltip>
+                                bayrağı. <code>true</code> ise kullanıcı devre dışıdır.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/users" summary="Şirketteki aktif kullanıcıları listele">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "page",    "type": "integer", "required": false, "desc": "Sayfa numarası (varsayılan: 1)." },
+                            { "name": "perPage", "type": "integer", "required": false, "desc": "Sayfa başı kullanıcı sayısı (varsayılan: 20)." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"users\": [\n    {\n      \"id\": \"uuid-...\",\n      \"name\": \"Ahmet Yılmaz\",\n      \"personnel_id\": \"P001\",\n      \"title\": \"Yazılım Geliştirici\",\n      \"role\": \"personel\",\n      \"leave_balance\": 14,\n      \"start_date\": \"2024-01-15\"\n    }\n  ],\n  \"total\": 42\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="GET" url="/api/v1/users/:id" summary="Kullanıcı detayını getir">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"id\": \"uuid-...\",\n  \"name\": \"Ahmet Yılmaz\",\n  \"personnel_id\": \"P001\",\n  \"title\": \"Yazılım Geliştirici\",\n  \"email\": \"ahmet@sirket.com\",\n  \"role\": \"personel\",\n  \"manager_id\": \"mudur-uuid\",\n  \"leave_balance\": 14,\n  \"start_date\": \"2024-01-15\",\n  \"can_remote_check_in\": false,\n  \"avatar_path\": null,\n  \"is_deleted\": false\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="POST" url="/api/v1/users" summary="Şirkete yeni kullanıcı ekle (user:manage)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "personnelId", "type": "string", "required": true,  "desc": "Sicil numarası. Şirkette benzersiz olmalıdır." },
+                            { "name": "name",        "type": "string", "required": true,  "desc": "Ad soyad." },
+                            { "name": "password",    "type": "string", "required": true,  "desc": "Başlangıç şifresi. Bcrypt ile hash'lenerek saklanır; düz metin tutulmaz." },
+                            { "name": "role",        "type": "enum",   "required": true,  "desc": "admin | mudur | takim_lideri | personel" },
+                            { "name": "title",       "type": "string", "required": false, "desc": "Unvan veya departman." },
+                            { "name": "email",       "type": "string", "required": false, "desc": "E-posta adresi." },
+                            { "name": "managerId",   "type": "UUID",   "required": false, "desc": "Bağlı yöneticinin UUID'si." },
+                            { "name": "start_date",  "type": "date",   "required": false, "desc": "İşe başlama tarihi (YYYY-MM-DD)." }
+                        ],
+                        "request":  "{\n  \"personnelId\": \"P042\",\n  \"name\": \"Zeynep Kaya\",\n  \"password\": \"BaslangicSifre!\",\n  \"role\": \"personel\",\n  \"title\": \"Ürün Tasarımcısı\",\n  \"email\": \"zeynep@sirket.com\",\n  \"start_date\": \"2026-07-01\"\n}",
+                        "response": "{\n  \"success\": true,\n  \"user\": {\n    \"id\": \"yeni-uuid\",\n    \"personnel_id\": \"P042\",\n    \"name\": \"Zeynep Kaya\",\n    \"role\": \"personel\"\n  }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/users/:id" summary="Kullanıcı bilgilerini güncelle (user:manage)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "title",              "type": "string",  "required": false, "desc": "Yeni unvan." },
+                            { "name": "role",               "type": "enum",    "required": false, "desc": "Yeni rol." },
+                            { "name": "leave_balance",      "type": "integer", "required": false, "desc": "Güncellenecek izin bakiyesi (gün sayısı)." },
+                            { "name": "can_remote_check_in","type": "boolean", "required": false, "desc": "Uzaktan giriş iznini aç/kapat." },
+                            { "name": "password",           "type": "string",  "required": false, "desc": "Yeni şifre. Gönderilirse bcrypt ile hash'lenir." }
+                        ],
+                        "request":  "{\n  \"title\": \"Kıdemli Yazılım Geliştirici\",\n  \"leave_balance\": 20,\n  \"can_remote_check_in\": true\n}",
+                        "response": "{\n  \"success\": true,\n  \"user\": { \"id\": \"uuid-...\", \"title\": \"Kıdemli Yazılım Geliştirici\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="DELETE" url="/api/v1/users/:id" summary="Kullanıcıyı devre dışı bırak — soft delete (user:manage)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"message\": \"Kullanıcı devre dışı bırakıldı\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="Silme işlemi geri alınabilir mi?">
+                    Evet. <code>is_deleted = true</code> yapılan kullanıcı veritabanında korunur.
+                    Gerekirse admin bir PATCH isteğiyle <code>is_deleted: false</code> göndererek kullanıcıyı yeniden etkinleştirebilir.
+                </c-callout>
+
+                <c-api-endpoint method="POST" url="/api/v1/users/:id/reset-password" summary="Kullanıcının şifresini sıfırla (user:manage)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "newPassword", "type": "string", "required": true, "desc": "Kullanıcıya atanacak yeni şifre. Bcrypt ile hash'lenir." }
+                        ],
+                        "request":  "{\n  \"newPassword\": \"YeniSifre2026!\"\n}",
+                        "response": "{\n  \"success\": true,\n  \"message\": \"Şifre sıfırlandı\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-alert variant="warning" dismissible>
+                    <strong>Önemli:</strong> Şifre sıfırlandığında kullanıcının aktif oturumu kapatılır; bir sonraki girişte yeni şifre kullanması gerekir.
+                </c-alert>
+
+                <c-api-endpoint method="POST" url="/api/v1/users/:id/avatar" summary="Profil fotoğrafı yükle (multipart/form-data)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"avatarPath\": \"/uploads/avatars/company-uuid/avatar-uuid.jpg\",\n  \"user\": { \"id\": \"uuid-...\", \"avatar_path\": \"/uploads/avatars/company-uuid/avatar-uuid.jpg\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="info" title="Avatar yükleme kuralları">
+                    İstek <code>Content-Type: multipart/form-data</code> formatında gönderilmelidir.
+                    Dosyalar <code>/uploads/avatars/{companyId}/</code> dizinine kaydedilir.
+                    Kullanıcı kendi avatarını yükleyebilir; admin/mudur başka kullanıcılar adına da yükleyebilir.
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-href="attendance.html" prev-label="Devam Takibi"
+                    next-href="leaves.html" next-label="İzin Yönetimi">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-tabs/c-tabs.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-alert/c-alert.js"></script>
+</body>
+
+</html>

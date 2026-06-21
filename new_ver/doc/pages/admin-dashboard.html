@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="admin-dashboard" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Admin Panel>Dashboard"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Admin Dashboard</h1>
+
+                <p>
+                    <code>GET /api/v1/admin/dashboard</code> —
+                    <c-badge variant="warning">dashboard:view</c-badge> yetkisi gereklidir (<c-badge variant="danger">admin</c-badge> ve <c-badge variant="warning">mudur</c-badge>).
+                </p>
+                <p>
+                    Dashboard endpoint'i, admin panelinin ana sayfasını doldurmak için tasarlanmış birleşik bir veri kaynağıdır.
+                    Tek bir API çağrısıyla bugünkü devam durumu, bekleyen onaylar, yaklaşan tatiller ve personel dağılımı alınır.
+                    Tüm veriler <strong>o günün anlık durumunu</strong> yansıtır; başka şirketlerin verisini içermez.
+                </p>
+
+                <c-callout variant="info" title="Neden tek endpoint?">
+                    Admin paneli açıldığında 5-6 ayrı API çağrısı yapmak yerine tek bir çağrıyla tüm widget verileri alınır.
+                    Bu yaklaşım ağ gecikmesini azaltır ve sayfa yükleme süresini kısaltır.
+                </c-callout>
+
+                <h2>Endpoint</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/admin/dashboard" summary="Günlük istatistikler, bekleyen onaylar ve şirket bilgisi">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"present\": [...],\n  \"onLeave\": [...],\n  \"late\": [...],\n  \"absent\": [...],\n  \"pendingLeaves\": [...],\n  \"pendingOvertime\": [...],\n  \"upcomingHolidays\": [...],\n  \"departments\": [...],\n  \"roleCounts\": { \"admin\": 1, \"mudur\": 2, \"takim_lideri\": 3, \"personel\": 36 },\n  \"recentActivity\": [...]\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <h2>Yanıt Alanları</h2>
+
+                <h3>Devam Durumu</h3>
+                <p>Bugünkü devam durumu 4 grupta döner:</p>
+                <c-code-block lang="json">{
+  "present": [
+    {
+      "user_id":      "uuid-...",
+      "user_name":    "Ahmet Yılmaz",
+      "first_checkin": "2026-06-16T09:01:00.000Z"
+    }
+  ],
+  "onLeave": [
+    {
+      "user_id":    "uuid-...",
+      "user_name":  "Zeynep Kaya",
+      "leave_start": "2026-06-16",
+      "leave_end":   "2026-06-20"
+    }
+  ],
+  "late": [
+    {
+      "user_id":       "uuid-...",
+      "user_name":     "Mehmet Demir",
+      "first_checkin": "2026-06-16T09:45:00.000Z",
+      "minutes_late":  45
+    }
+  ],
+  "absent": [
+    { "user_id": "uuid-...", "user_name": "Ayşe Çelik" }
+  ]
+}</c-code-block>
+
+                <table>
+                    <thead><tr><th>Alan</th><th>Açıklama</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>present</code></td><td>Bugün giriş yapıp şu an içeride olan çalışanlar.</td></tr>
+                        <tr><td><code>onLeave</code></td><td>Bugün onaylı izni olan çalışanlar.</td></tr>
+                        <tr>
+                            <td><code>late</code></td>
+                            <td>
+                                Mesai başlangıcından sonra giriş yapanlar.
+                                <code>minutes_late</code> alanı, ayarlardaki
+                                <c-tooltip text="Rounding Threshold — mesai başlangıç yuvarlaması. Örn. 30 dk ise 09:30'a kadar giriş yapanlar 'zamanında' sayılır; 09:31'den sonra gelenler 'geç' olur." position="right"><span class="term">rounding_threshold</span></c-tooltip>
+                                dikkate alınarak hesaplanır.
+                            </td>
+                        </tr>
+                        <tr><td><code>absent</code></td><td>Bugün ne giriş yapmış ne de izni olan çalışanlar.</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Bekleyen Onaylar</h3>
+                <c-code-block lang="json">{
+  "pendingLeaves": [
+    {
+      "id":         "uuid-...",
+      "user_name":  "Fatma Yıldız",
+      "start_date": "2026-07-01",
+      "end_date":   "2026-07-05",
+      "days":       5,
+      "type":       "annual"
+    }
+  ],
+  "pendingOvertime": [
+    {
+      "id":        "uuid-...",
+      "user_name": "Can Arslan",
+      "date":      "2026-06-15",
+      "hours":     3.0
+    }
+  ]
+}</c-code-block>
+
+                <h3>Tatiller, Departmanlar ve Son Hareketler</h3>
+                <c-code-block lang="json">{
+  "upcomingHolidays": [
+    { "date": "2026-07-15", "name": "Demokrasi ve Millî Birlik Günü" }
+  ],
+  "departments": [
+    { "title": "Yazılım",   "count": 8 },
+    { "title": "Satış",     "count": 5 },
+    { "title": "Pazarlama", "count": 3 }
+  ],
+  "roleCounts": {
+    "admin":        1,
+    "mudur":        2,
+    "takim_lideri": 3,
+    "personel":     36
+  },
+  "recentActivity": [
+    {
+      "actor_name": "Admin Kullanıcı",
+      "action":     "leave:approved",
+      "created_at": "2026-06-16T10:00:00.000Z"
+    }
+  ]
+}</c-code-block>
+
+                <h2>Admin Panel Sayfaları</h2>
+                <p>
+                    Admin
+                    <c-tooltip text="SPA (Single Page Application) — sayfa yenilenmeden, JavaScript ile içerik değiştirilen tek sayfa uygulaması. PDKS admin paneli /admin adresinde çalışan bir SPA'dır." position="top"><span class="term">SPA</span></c-tooltip>'sı
+                    <code>/admin</code> adresinde bulunur. Bu endpoint'in verisini kullanan widget'lar ve diğer sayfalar:
+                </p>
+                <table>
+                    <thead><tr><th>Sayfa</th><th>Ne Gösterir?</th></tr></thead>
+                    <tbody>
+                        <tr><td>Dashboard</td><td>Bu endpoint'teki tüm verilerin görsel özeti.</td></tr>
+                        <tr><td>Kullanıcılar</td><td>Kullanıcı listesi, oluşturma, düzenleme, şifre sıfırlama.</td></tr>
+                        <tr><td>Hareketler</td><td>Devam kayıtları, manuel kayıt ekleme ve düzenleme.</td></tr>
+                        <tr><td>İzinler</td><td>Bekleyen izin taleplerini onaylama veya reddetme.</td></tr>
+                        <tr><td>Fazla Mesai</td><td>Bekleyen fazla mesai taleplerini onaylama veya reddetme.</td></tr>
+                        <tr><td>Tatil Günleri</td><td>Şirkete özel tatil ekleme/silme.</td></tr>
+                        <tr><td>Ayarlar</td><td>Mesai saatleri, IP kısıtlaması, QR secret yenileme.</td></tr>
+                        <tr><td>Denetim Günlüğü</td><td>Filtrelenebilir tüm sistem işlem geçmişi.</td></tr>
+                        <tr><td>Raporlar</td><td>Excel formatında devam ve izin raporları indirme.</td></tr>
+                    </tbody>
+                </table>
+
+                <c-pagination-nav
+                    prev-href="push.html" prev-label="Push Bildirimler"
+                    next-href="admin-audit.html" next-label="Denetim Günlüğü">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

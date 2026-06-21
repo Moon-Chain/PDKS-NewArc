@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sınıf Hiyerarşisi — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+
+        .flow-tree {
+            background: var(--c-bg-code, #111);
+            border: 1px solid var(--c-border);
+            border-left: 3px solid var(--c-primary);
+            border-radius: var(--c-radius);
+            padding: 1.25rem 1.5rem;
+            font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.79rem;
+            line-height: 1.95;
+            overflow-x: auto;
+            white-space: pre;
+            margin: var(--c-space-3) 0;
+            color: var(--c-text);
+        }
+        .ft-t   { color: #f0c040; font-weight: 700; }
+        .ft-f   { color: #7cb9f0; }
+        .ft-e   { color: #fb923c; }
+        .ft-d   { color: #c084fc; }
+        .ft-c   { color: #86efac; }
+        .ft-m   { color: #6b7280; font-style: italic; }
+        .ft-err { color: #f87171; }
+        .ft-ok  { color: #4ade80; }
+        .ft-cls { color: #f472b6; font-weight: 700; }  /* sınıf adı */
+        .ft-abs { color: #94a3b8; font-style: italic; } /* abstract */
+        .ft-met { color: #7cb9f0; }                     /* metod */
+
+        .inst-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin: var(--c-space-3) 0; }
+        .inst-table th, .inst-table td { border: 1px solid var(--c-border); padding: .5rem .75rem; text-align: left; }
+        .inst-table th { background: var(--c-bg-subtle); font-weight: 600; }
+        .inst-table td:first-child { font-family: monospace; color: #f472b6; white-space: nowrap; }
+        .inst-table td:nth-child(3) { font-family: monospace; font-size: 0.8rem; color: var(--c-text-muted); }
+        .inst-table tr:hover td { background: var(--c-bg-subtle); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="arch-classes" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Mimari>Sınıf Hiyerarşisi"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Sınıf Hiyerarşisi</h1>
+
+                <p>
+                    Bu sayfa; backend ve frontend'deki tüm sınıfların kalıtım ağacını,
+                    hangi sınıfın ne zaman ve nerede örneklendiğini (<em>instantiate</em>),
+                    hangi metodların override edildiğini ve constructor'dan itibaren yürütme
+                    sırasını detaylı olarak gösterir.
+                </p>
+
+                <c-callout variant="info" title="Renk rehberi">
+                    <span style="color:#f472b6;font-family:monospace;font-weight:700">Pembe/Kalın</span> — sınıf adı &nbsp;|&nbsp;
+                    <span style="color:#94a3b8;font-family:monospace;font-style:italic">Gri/İtalik</span> — abstract (örneklenemez) &nbsp;|&nbsp;
+                    <span style="color:#7cb9f0;font-family:monospace">Mavi</span> — metod &nbsp;|&nbsp;
+                    <span style="color:#c084fc;font-family:monospace">Mor</span> — özellik/alan &nbsp;|&nbsp;
+                    <span style="color:#6b7280;font-family:monospace;font-style:italic">Gri/italik</span> — yorum
+                </c-callout>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>1 — Backend: Repository Hiyerarşisi</h2>
+
+                <p>
+                    Tüm repository'ler <code>BaseRepository</code>'den türer.
+                    Base sınıf; SQL injection önleme, <code>findById</code>, <code>create</code>,
+                    <code>update</code>, <code>delete</code> yardımcılarını sağlar.
+                    Somut sınıflar yalnızca domain'e özgü sorgular ekler.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-abs">abstract</span> <span class="ft-cls">BaseRepository</span>  <span class="ft-m">← core/BaseRepository.ts</span>
+│   <span class="ft-met">findById(id)</span>             <span class="ft-m">SELECT ... WHERE id=$1 AND company_id=$2</span>
+│   <span class="ft-met">findAll(where?, limit?)</span>  <span class="ft-m">SELECT ... WHERE [conditions] LIMIT [n]</span>
+│   <span class="ft-met">create(data)</span>             <span class="ft-m">INSERT ... RETURNING *</span>
+│   <span class="ft-met">update(id, data)</span>         <span class="ft-m">UPDATE ... SET col=$n WHERE id=$1</span>
+│   <span class="ft-met">delete(id)</span>              <span class="ft-m">DELETE / soft-delete (deleted_at)</span>
+│   <span class="ft-met">buildWhere(conditions)</span>   <span class="ft-m">WhereCondition → parametre güvenli SQL parçası</span>
+│
+├─ <span class="ft-cls">UserRepository</span>          <span class="ft-m">repositories/UserRepository.ts</span>
+│    <span class="ft-met">findByEmail(email, cid)</span>   <span class="ft-m">giriş doğrulaması için</span>
+│    <span class="ft-met">updatePassword(id, hash)</span>
+│    <span class="ft-met">updateAvatar(id, path)</span>
+│
+├─ <span class="ft-cls">AttendanceRepository</span>    <span class="ft-m">repositories/AttendanceRepository.ts</span>
+│    <span class="ft-met">getToday(userId, cid)</span>     <span class="ft-m">bugünkü giriş/çıkış kaydı</span>
+│    <span class="ft-met">getLastRecord(userId)</span>     <span class="ft-m">cooldown kontrolü için son kayıt</span>
+│    <span class="ft-met">getByDateRange(uid, from, to)</span>
+│
+├─ <span class="ft-cls">LeaveRepository</span>         <span class="ft-m">repositories/LeaveRepository.ts</span>
+│    <span class="ft-met">getBalance(userId, year)</span>  <span class="ft-m">kalan izin günü</span>
+│    <span class="ft-met">getPending(companyId)</span>     <span class="ft-m">onay bekleyenler</span>
+│    <span class="ft-met">approve(id, approvedBy)</span>
+│    <span class="ft-met">reject(id, rejectedBy)</span>
+│
+├─ <span class="ft-cls">OvertimeRepository</span>      <span class="ft-m">repositories/OvertimeRepository.ts</span>
+│    <span class="ft-met">getPending(companyId)</span>
+│    <span class="ft-met">approve(id, approvedBy)</span>
+│
+├─ <span class="ft-cls">NotificationRepository</span>  <span class="ft-m">repositories/NotificationRepository.ts</span>
+│    <span class="ft-met">getUnread(userId)</span>
+│    <span class="ft-met">markRead(id, userId)</span>
+│    <span class="ft-met">markAllRead(userId)</span>
+│
+├─ <span class="ft-cls">HolidayRepository</span>       <span class="ft-m">repositories/HolidayRepository.ts</span>
+│    <span class="ft-met">getByYear(year, companyId)</span>
+│
+├─ <span class="ft-cls">SettingsRepository</span>      <span class="ft-m">repositories/SettingsRepository.ts</span>
+│    <span class="ft-met">get(companyId)</span>
+│    <span class="ft-met">upsert(companyId, data)</span>
+│
+├─ <span class="ft-cls">AuditRepository</span>         <span class="ft-m">repositories/AuditRepository.ts</span>
+│    <span class="ft-met">log({actor, action, old, new, ip})</span>
+│    <span class="ft-met">getAll(companyId, filters)</span>
+│
+└─ <span class="ft-cls">CompanyRepository</span>       <span class="ft-m">repositories/CompanyRepository.ts</span>
+     <span class="ft-met">findByDomain(domain)</span>
+     <span class="ft-met">getActive()</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>2 — Backend: Service Hiyerarşisi</h2>
+
+                <p>
+                    Servisler iş mantığını kapsar. <code>BaseService</code>, yetki kontrolü
+                    (<code>assertAdmin</code>, <code>assertSelfOrAdmin</code>) ve sayfalama
+                    yardımcılarını sağlar.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-abs">abstract</span> <span class="ft-cls">BaseService</span>  <span class="ft-m">← core/BaseService.ts</span>
+│   <span class="ft-met">assertAdmin(user)</span>           <span class="ft-m">role !== 'admin' → AppError(403)</span>
+│   <span class="ft-met">assertAdminOrMudur(user)</span>    <span class="ft-m">role ∉ ['admin','mudur'] → AppError(403)</span>
+│   <span class="ft-met">assertSelfOrAdmin(user, id)</span> <span class="ft-m">user.id !== id AND role !== 'admin' → AppError(403)</span>
+│   <span class="ft-met">paginate(query, page, limit)</span> <span class="ft-m">LIMIT/OFFSET hesabı</span>
+│
+├─ <span class="ft-cls">AuthService</span>         <span class="ft-m">services/AuthService.ts</span>
+│    <span class="ft-met">login(email, pwd)</span>           <span class="ft-m">bcrypt.compare → jwt.sign → audit log</span>
+│    <span class="ft-met">logout(jti)</span>                 <span class="ft-m">JTI kara listesine ekle</span>
+│    <span class="ft-met">changePassword(id, old, new)</span>
+│    <span class="ft-d">→ UserRepository</span>  <span class="ft-m">bağımlılık</span>
+│
+├─ <span class="ft-cls">UserService</span>         <span class="ft-m">services/UserService.ts</span>
+│    <span class="ft-met">create(data, actorId)</span>        <span class="ft-m">assertAdmin + bcrypt hash + create</span>
+│    <span class="ft-met">update(id, data, actor)</span>      <span class="ft-m">assertSelfOrAdmin + update</span>
+│    <span class="ft-met">delete(id, actor)</span>           <span class="ft-m">assertAdmin + soft-delete</span>
+│    <span class="ft-d">→ UserRepository, AuditRepository</span>
+│
+├─ <span class="ft-cls">AttendanceService</span>   <span class="ft-m">services/AttendanceService.ts</span>
+│    <span class="ft-met">checkIn(data)</span>               <span class="ft-m">QR doğrula → cooldown → INSERT → emit</span>
+│    <span class="ft-met">manualRecord(data)</span>          <span class="ft-m">assertAdmin → doğrudan kayıt</span>
+│    <span class="ft-d">→ AttendanceRepository, SettingsRepository, emitter</span>
+│
+├─ <span class="ft-cls">LeaveService</span>        <span class="ft-m">services/LeaveService.ts</span>
+│    <span class="ft-met">create(data)</span>                <span class="ft-m">iş günü say → bakiye kontrol → INSERT → emit</span>
+│    <span class="ft-met">approve(id, actor)</span>          <span class="ft-m">assertAdminOrMudur → update → emit → audit</span>
+│    <span class="ft-met">reject(id, actor)</span>
+│    <span class="ft-met">cancel(id, actor)</span>
+│    <span class="ft-d">→ LeaveRepository, HolidayRepository, emitter, AuditRepository</span>
+│
+├─ <span class="ft-cls">OvertimeService</span>     <span class="ft-m">services/OvertimeService.ts</span>
+│    <span class="ft-met">create(data)</span>
+│    <span class="ft-met">approve/reject/cancel(id, actor)</span>
+│    <span class="ft-d">→ OvertimeRepository, emitter, AuditRepository</span>
+│
+├─ <span class="ft-cls">NotificationService</span> <span class="ft-m">services/NotificationService.ts</span>
+│    <span class="ft-met">notify({userId, title, message, type})</span>
+│    │    ├─ <span class="ft-f">NotificationRepository.create()</span>  → DB'ye kayıt
+│    │    ├─ SSE Manager → bağlı client'a anlık gönder
+│    │    └─ <span class="ft-f">webPush.sendNotification()</span>  → Push bildirim
+│    <span class="ft-d">→ NotificationRepository, sseClients, web-push</span>
+│
+├─ <span class="ft-cls">SettingsService</span>     <span class="ft-m">services/SettingsService.ts</span>
+│    <span class="ft-met">get(companyId)</span>
+│    <span class="ft-met">update(companyId, data, actor)</span>  <span class="ft-m">assertAdmin</span>
+│    <span class="ft-d">→ SettingsRepository</span>
+│
+├─ <span class="ft-cls">ExcelService</span>        <span class="ft-m">services/ExcelService.ts</span>
+│    <span class="ft-met">generateAttendanceReport(companyId, from, to)</span>
+│    <span class="ft-met">generateLeaveReport(companyId, year)</span>
+│    <span class="ft-d">→ AttendanceRepository, LeaveRepository, exceljs</span>
+│
+└─ <span class="ft-cls">StorageService</span>      <span class="ft-m">services/StorageService.ts</span>
+     <span class="ft-met">saveAvatar(file, userId)</span>  <span class="ft-m">uploads/ dizinine yazar</span>
+     <span class="ft-met">deleteAvatar(path)</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>3 — Frontend: Page Hiyerarşisi</h2>
+
+                <p>
+                    Tüm kullanıcı sayfaları <code>BasePage</code>'den türer.
+                    <code>render()</code> abstract'tır — her sayfa kendi HTML'ini üretmek ve
+                    event listener'larını bağlamak zorundadır.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-abs">abstract</span> <span class="ft-cls">BasePage</span>  <span class="ft-m">← public/ts/core/BasePage.ts</span>
+│   <span class="ft-d">container: HTMLElement</span>
+│   <span class="ft-d">_listeners: ListenerEntry[]</span>  <span class="ft-m">kayıtlı tüm event dinleyiciler</span>
+│   <span class="ft-abs">abstract</span> <span class="ft-met">render(): Promise&lt;void&gt;</span>
+│   <span class="ft-met">on(selector, event, handler)</span>  <span class="ft-m">dinleyici ekle + _listeners'a kaydet</span>
+│   <span class="ft-met">$(selector)</span>                   <span class="ft-m">container.querySelector()</span>
+│   <span class="ft-met">$$(selector)</span>                  <span class="ft-m">container.querySelectorAll()</span>
+│   <span class="ft-met">destroy()</span>                     <span class="ft-m">tüm dinleyiciler kaldır + container temizle</span>
+│
+├─ <span class="ft-cls">LoginPage</span>         <span class="ft-m">pages/LoginPage.ts</span>
+│    <span class="ft-met">render()</span>  → form HTML + submit handler
+│    <span class="ft-met">handleSubmit()</span>  → api.post + state.set + router.navigate
+│
+├─ <span class="ft-cls">HomePage</span>          <span class="ft-m">pages/HomePage.ts</span>
+│    <span class="ft-met">render()</span>  → api.get('/attendance/today') + status kartı
+│    <span class="ft-met">openQRScanner()</span>  → QRScanner component başlatır
+│
+├─ <span class="ft-cls">LeavesPage</span>        <span class="ft-m">pages/LeavesPage.ts</span>
+│    <span class="ft-met">render()</span>  → izin listesi + bakiye
+│    <span class="ft-met">openNewLeaveModal()</span>  → Modal component
+│    <span class="ft-met">submitLeave(data)</span>  → api.post + liste güncelleme
+│
+├─ <span class="ft-cls">ApprovalsPage</span>     <span class="ft-m">pages/ApprovalsPage.ts</span>
+│    <span class="ft-met">render()</span>  → bekleyen izin + mesai listesi
+│    <span class="ft-met">approve(id, type)</span>  → api.post
+│    <span class="ft-met">reject(id, type, reason)</span>
+│
+├─ <span class="ft-cls">UsersPage</span>         <span class="ft-m">pages/UsersPage.ts</span>
+│    <span class="ft-met">render()</span>  → kullanıcı kartları
+│    <span class="ft-met">openUserDetail(id)</span>
+│
+├─ <span class="ft-cls">ProfilePage</span>       <span class="ft-m">pages/ProfilePage.ts</span>
+│    <span class="ft-met">render()</span>  → profil formu + avatar yükleme
+│    <span class="ft-met">uploadAvatar(file)</span>  → api.upload
+│
+├─ <span class="ft-cls">MovementsPage</span>     <span class="ft-m">pages/MovementsPage.ts</span>
+│    <span class="ft-met">render()</span>  → hareketler tablosu + tarih filtresi
+│
+├─ <span class="ft-cls">QRDisplayPage</span>     <span class="ft-m">pages/QRDisplayPage.ts</span>
+│    <span class="ft-met">render()</span>  → api.get('/auth/me') + QR kodu oluştur (qrcode lib)
+│
+├─ <span class="ft-cls">SettingsPage</span>      <span class="ft-m">pages/SettingsPage.ts</span>
+│    <span class="ft-met">render()</span>  → uygulama ayarları formu
+│
+├─ <span class="ft-cls">NotificationsPage</span> <span class="ft-m">pages/NotificationsPage.ts</span>
+│    <span class="ft-met">render()</span>  → bildirim listesi + okundu işareti
+│
+└─ <span class="ft-cls">PlaceholderPage</span>   <span class="ft-m">pages/PlaceholderPage.ts</span>
+     <span class="ft-met">render()</span>  → "Yakında" mesajı</pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>4 — Frontend: Component Hiyerarşisi</h2>
+
+                <p>
+                    Sayfaların dışında kalan kalıcı bileşenler (TopBar, BottomNav) ve yardımcı
+                    bileşenler (Modal, Toast) <code>BaseComponent</code>'ten türer.
+                    Bunlar <code>router._render()</code> tarafından asla yeniden oluşturulmaz.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-abs">abstract</span> <span class="ft-cls">BaseComponent</span>  <span class="ft-m">← public/ts/core/BaseComponent.ts</span>
+│   <span class="ft-abs">abstract</span> <span class="ft-met">mount(container: HTMLElement): void</span>
+│   <span class="ft-met">destroy()</span>  <span class="ft-m">dinleyicileri kaldır</span>
+│
+├─ <span class="ft-cls">TopBar</span>             <span class="ft-m">components/TopBar.ts</span>
+│    <span class="ft-met">mount(el)</span>  → header HTML + dropdown + bildirim butonu
+│    <span class="ft-m">state.watch('profile') değiştiğinde renderTopBar() ile yeniden mount edilir</span>
+│
+├─ <span class="ft-cls">BottomNav</span>          <span class="ft-m">components/BottomNav.ts</span>
+│    <span class="ft-met">mount(el)</span>   → alt navigasyon linkleri (role'e göre farklı)
+│    <span class="ft-met">setActive(path)</span>  → aktif linki vurgular
+│    <span class="ft-m">admin veya müdür rolünde ekstra "Onaylar" sekmesi görünür</span>
+│
+├─ <span class="ft-cls">Modal</span>              <span class="ft-m">components/Modal.ts</span>
+│    <span class="ft-met">open(title, content, onConfirm)</span>
+│    <span class="ft-met">close()</span>  → ESC + dışına tıkla ile de kapanır
+│    <span class="ft-m">Sayfalar modal'ı doğrudan örnekler: new Modal().open(...)</span>
+│
+├─ <span class="ft-cls">Toast</span>              <span class="ft-m">components/Toast.ts</span>
+│    <span class="ft-met">show(message, type, duration)</span>  → 3000ms sonra otomatik kapanır
+│    <span class="ft-m">Toast.show() static çağrılabilir — container body'ye eklenir</span>
+│
+├─ <span class="ft-cls">QRScanner</span>          <span class="ft-m">components/QRScanner.ts</span>
+│    <span class="ft-met">open(onSuccess)</span>  → kamera izni iste + video stream + jsQR döngüsü
+│    <span class="ft-met">close()</span>          → stream durdur, DOM temizle
+│
+├─ <span class="ft-cls">NotificationPanel</span>  <span class="ft-m">components/NotificationPanel.ts</span>
+│    <span class="ft-met">open()</span>   → bildirim listesi yükle, panel göster
+│    <span class="ft-met">close()</span>  → panel gizle
+│    <span class="ft-m">TopBar bell butonuna tıklandığında açılır</span>
+│
+├─ <span class="ft-cls">Skeleton</span>           <span class="ft-m">components/Skeleton.ts</span>
+│    <span class="ft-met">render(count, type)</span>  → shimmer placeholder'lar
+│    <span class="ft-m">API yanıtı beklenirken sayfanın içerik alanına eklenir</span>
+│
+└─ <span class="ft-cls">StatusIndicator</span>    <span class="ft-m">components/StatusIndicator.ts</span>
+     <span class="ft-met">update(isOnline)</span>  → online/offline durumu gösterir
+     <span class="ft-m">window 'online'/'offline' event'ini dinler</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>5 — Sınıf Örneklenme Zamanları</h2>
+
+                <p>
+                    Her sınıfın ne zaman, kaç kez ve nerede örneklendiği aşağıda listelenmiştir.
+                </p>
+
+                <table class="inst-table">
+                    <thead>
+                        <tr>
+                            <th>Sınıf</th>
+                            <th>Örneklenme zamanı</th>
+                            <th>Nerede / nasıl</th>
+                            <th>Kaç kez</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Logger</td>
+                            <td>core/Logger.ts import edilirken</td>
+                            <td>module-level singleton</td>
+                            <td>1 kez (process boyunca)</td>
+                        </tr>
+                        <tr>
+                            <td>pg.Pool</td>
+                            <td>db/connection.ts import edilirken</td>
+                            <td>module-level singleton</td>
+                            <td>1 kez (process boyunca)</td>
+                        </tr>
+                        <tr>
+                            <td>EventEmitter</td>
+                            <td>events/emitter.ts import edilirken</td>
+                            <td>module-level singleton</td>
+                            <td>1 kez</td>
+                        </tr>
+                        <tr>
+                            <td>XxxRepository</td>
+                            <td>XxxService constructor'ında</td>
+                            <td>service başlatılırken</td>
+                            <td>Route modülü yüklenince 1 kez</td>
+                        </tr>
+                        <tr>
+                            <td>XxxService</td>
+                            <td>route/*.ts modül seviyesinde</td>
+                            <td>const service = new XxxService()</td>
+                            <td>Route modülü yüklenince 1 kez</td>
+                        </tr>
+                        <tr>
+                            <td>Router</td>
+                            <td>app.ts init() içinde</td>
+                            <td>new Router(routes, app)</td>
+                            <td>1 kez (uygulama ömrü boyunca)</td>
+                        </tr>
+                        <tr>
+                            <td>StateManager</td>
+                            <td>app.ts modülü import edilirken</td>
+                            <td>module-level singleton (state)</td>
+                            <td>1 kez</td>
+                        </tr>
+                        <tr>
+                            <td>TopBar</td>
+                            <td>renderTopBar() çağrıldığında</td>
+                            <td>init() + state.watch('user') + state.watch('profile')</td>
+                            <td>Oturum aç/kapat + profil güncellemede</td>
+                        </tr>
+                        <tr>
+                            <td>BottomNav</td>
+                            <td>renderNav() çağrıldığında</td>
+                            <td>init() + state.watch('user')</td>
+                            <td>Oturum aç/kapatada</td>
+                        </tr>
+                        <tr>
+                            <td>XxxPage</td>
+                            <td>router._render() içinde</td>
+                            <td>new PageClass(container)</td>
+                            <td>Her sayfa geçişinde 1 kez</td>
+                        </tr>
+                        <tr>
+                            <td>Modal</td>
+                            <td>Sayfa içinde ihtiyaç anında</td>
+                            <td>new Modal().open(...)</td>
+                            <td>Her modal açıldığında</td>
+                        </tr>
+                        <tr>
+                            <td>QRScanner</td>
+                            <td>HomePage'de QR butonu tıklanınca</td>
+                            <td>new QRScanner().open(...)</td>
+                            <td>Her tarama oturumunda</td>
+                        </tr>
+                        <tr>
+                            <td>AdminLayout</td>
+                            <td>app-admin.ts init() içinde</td>
+                            <td>new AdminLayout(app, path)</td>
+                            <td>1 kez (admin SPA ömrü boyunca)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>6 — BasePage Constructor → destroy() Sırası</h2>
+
+                <pre class="flow-tree"><span class="ft-t">new LeavesPage(container)</span>  çağrıldı
+│
+├─ <span class="ft-m">1. BasePage.constructor(container) çalıştı</span>
+│    ├─ <span class="ft-d">this.container = container</span>
+│    └─ <span class="ft-d">this._listeners = []</span>   <span class="ft-m">boş dinleyici listesi</span>
+│
+├─ <span class="ft-m">2. LeavesPage.constructor(container) çalıştı (varsa)</span>
+│    └─ <span class="ft-m">super(container) mutlaka çağrılır</span>
+│
+├─ <span class="ft-m">3. await page.render() çağrıldı</span>
+│    ├─ API verisi alındı
+│    ├─ <span class="ft-d">this.container.innerHTML = html</span>
+│    └─ <span class="ft-f">this.on('#btn-new', 'click', handler)</span>
+│         └─ el.addEventListener('click', handler)
+│            <span class="ft-d">this._listeners.push({ el, 'click', handler })</span>
+│
+├─ <span class="ft-m">4. Kullanıcı sayfayla etkileşime girdi...</span>
+│    <span class="ft-m">   handler'lar tetiklendi, API çağrıları yapıldı</span>
+│
+└─ <span class="ft-m">5. Router yeni sayfaya geçiyor → page.destroy() çağrıldı</span>
+     ├─ <span class="ft-m">_listeners dizisindeki her {el, event, handler} için:</span>
+     │    └─ <span class="ft-f">el.removeEventListener(event, handler)</span>
+     ├─ <span class="ft-d">this._listeners = []</span>
+     └─ <span class="ft-d">this.container.innerHTML = ''</span>
+          <span class="ft-m">LeavesPage örneği garbage collect edilebilir</span>
+          <span class="ft-ok">✓ Bellek sızıntısı yok</span></pre>
+
+                <c-pagination-nav
+                    prev-label="Dosya Çalışma Sırası" prev-href="arch-files.html"
+                    next-label="Kullanıcı Akışları"   next-href="arch-flows.html">
+                </c-pagination-nav>
+            </div>
+
+            <c-toc selector=".page-inner h2"></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+/* ==========================================================================
+   base.css
+   Reset, temel tipografi ve sayfa düzeni (.page / .page-inner).
+   Renkler ve boyutlar tokens.css'teki değişkenlerden gelir; burada hardcode
+   değer kullanılmaz ki theme-toggle tüm sayfaya otomatik yayılsın.
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--c-font-family);
+    font-size: var(--c-font-size-base);
+    line-height: var(--c-line-height-base);
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    transition: background-color .2s ease, color .2s ease;
+}
+
+a {
+    color: var(--c-link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img {
+    max-width: 100%;
+}
+
+/* Sadece satır içi kod (pre>code hariç - o stilini c-code-block'tan/Prism'den alır) */
+:not(pre)>code {
+    background-color: var(--c-bg-subtle);
+    border-radius: var(--c-radius-sm);
+    padding: 0.1rem 0.3rem;
+    font-size: 0.875em;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--c-space-3) 0;
+    font-size: 0.9rem;
+}
+
+th,
+td {
+    border: 1px solid var(--c-border);
+    padding: var(--c-space-2);
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background-color: var(--c-bg-subtle);
+}
+
+td code {
+    white-space: nowrap;
+}
+
+/* Sidebar ile birlikte kullanılan sayfa içerik alanı */
+.page {
+    display: block;
+    padding-bottom: var(--c-space-5);
+    padding-left: var(--c-sidebar-width);
+    max-width: 100vw;
+}
+
+.page-inner {
+    margin-top: var(--c-navbar-height);
+    padding: var(--c-space-5);
+    position: relative;
+}
+
+/* Sidebar olmayan (örn. ana sayfa) tam genişlik içerik alanı */
+.page--full {
+    padding-left: 0;
+}
+
+/* Mobilde sidebar gizli başlar, c-sidebar kendi breakpoint'inde açar */
+@media only screen and (max-width: 768px) {
+    .page {
+        padding-left: 0;
+    }
+}
+
+/* Genel amaçlı kart ızgarası (örn. index.html bileşen galerisi) */
+.c-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--c-space-3);
+    margin: var(--c-space-3) 0;
+}
+
+.c-grid c-card {
+    display: block;
+    height: 100%;
+}
+
+.c-grid .c-card {
+    margin: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.c-grid .c-card__body {
+    flex: 1;
+}
+
+/* İçindekiler (c-toc) ile birlikte iki kolonlu sayfa düzeni */
+.page--with-toc .page-inner {
+    display: grid;
+    grid-template-columns: 1fr var(--c-toc-width);
+    gap: var(--c-space-5);
+    align-items: start;
+}
+
+@media only screen and (max-width: 992px) {
+    .page--with-toc .page-inner {
+        grid-template-columns: 1fr;
+    }
+}

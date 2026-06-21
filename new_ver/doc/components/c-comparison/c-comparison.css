@@ -1,0 +1,59 @@
+/* c-comparison: yan yana Do/Don't karşılaştırma panelleri */
+
+c-dont,
+c-do {
+    display: none;
+}
+
+.c-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--c-space-3);
+    margin: var(--c-space-3) 0;
+}
+
+@media (max-width: 640px) {
+    .c-comparison {
+        grid-template-columns: 1fr;
+    }
+}
+
+.c-comparison__panel {
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    overflow: hidden;
+}
+
+.c-comparison__panel--dont {
+    border-top: 3px solid var(--c-danger);
+}
+
+.c-comparison__panel--do {
+    border-top: 3px solid var(--c-success);
+}
+
+.c-comparison__label {
+    padding: var(--c-space-1) var(--c-space-3);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background-color: var(--c-bg-subtle);
+    border-bottom: 1px solid var(--c-border);
+}
+
+.c-comparison__panel--dont .c-comparison__label {
+    color: var(--c-danger);
+}
+
+.c-comparison__panel--do .c-comparison__label {
+    color: var(--c-success);
+}
+
+.c-comparison__body {
+    padding: var(--c-space-3);
+}
+
+.c-comparison__body > *:last-child {
+    margin-bottom: 0;
+}

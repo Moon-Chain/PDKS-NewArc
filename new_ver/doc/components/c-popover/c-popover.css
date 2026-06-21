@@ -1,0 +1,115 @@
+/* c-popover: tıklamayla açılan içerik balonu */
+
+.c-popover {
+    position: relative;
+    display: inline-block;
+}
+
+.c-popover__trigger {
+    display: inline-flex;
+    cursor: pointer;
+}
+
+.c-popover__panel {
+    position: absolute;
+    z-index: 500;
+    background: var(--c-bg-elevated);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    padding: var(--c-space-3);
+    min-width: 200px;
+    max-width: 320px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+}
+
+.c-popover__panel--open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* Ok işareti */
+.c-popover__panel::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--c-bg-elevated);
+    border: 1px solid var(--c-border);
+}
+
+/* ── Bottom (varsayılan) ── */
+.c-popover--bottom .c-popover__panel {
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) scaleY(0.94);
+    transform-origin: top center;
+}
+.c-popover--bottom .c-popover__panel--open {
+    transform: translateX(-50%) scaleY(1);
+}
+.c-popover--bottom .c-popover__panel::before {
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    border-bottom: none;
+    border-right: none;
+}
+
+/* ── Top ── */
+.c-popover--top .c-popover__panel {
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) scaleY(0.94);
+    transform-origin: bottom center;
+}
+.c-popover--top .c-popover__panel--open {
+    transform: translateX(-50%) scaleY(1);
+}
+.c-popover--top .c-popover__panel::before {
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    border-top: none;
+    border-left: none;
+}
+
+/* ── Right ── */
+.c-popover--right .c-popover__panel {
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) scaleX(0.94);
+    transform-origin: left center;
+}
+.c-popover--right .c-popover__panel--open {
+    transform: translateY(-50%) scaleX(1);
+}
+.c-popover--right .c-popover__panel::before {
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    border-right: none;
+    border-top: none;
+}
+
+/* ── Left ── */
+.c-popover--left .c-popover__panel {
+    right: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) scaleX(0.94);
+    transform-origin: right center;
+}
+.c-popover--left .c-popover__panel--open {
+    transform: translateY(-50%) scaleX(1);
+}
+.c-popover--left .c-popover__panel::before {
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    border-left: none;
+    border-bottom: none;
+}

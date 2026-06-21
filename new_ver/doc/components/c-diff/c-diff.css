@@ -1,0 +1,136 @@
+/* c-diff: satır bazlı kod fark görüntüleyici */
+
+.c-diff {
+    display: block;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: var(--c-radius);
+    overflow: hidden;
+    margin: var(--c-space-3) 0;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+}
+
+/* ── Başlık ── */
+.c-diff__header {
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+    padding: 0.5rem var(--c-space-3);
+    background: #252526;
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+
+.c-diff__header-arrow {
+    color: rgba(255, 255, 255, .3);
+    font-size: 0.8rem;
+}
+
+.c-diff__label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.15rem 0.65rem;
+    border-radius: var(--c-radius-sm);
+    border: 1px solid transparent;
+    font-family: inherit;
+}
+
+.c-diff__label--from {
+    background: rgba(248, 81, 73, .15);
+    color: #ff8c8c;
+    border-color: rgba(248, 81, 73, .3);
+}
+
+.c-diff__label--to {
+    background: rgba(46, 160, 67, .15);
+    color: #7ee787;
+    border-color: rgba(46, 160, 67, .3);
+}
+
+/* ── Body ── */
+.c-diff__body {
+    background: #1e1e1e;
+    overflow-x: auto;
+}
+
+/* ── Satır ── */
+.c-diff__row {
+    display: flex;
+    align-items: stretch;
+    min-width: max-content;
+    width: 100%;
+    border-left: 3px solid transparent;
+}
+
+.c-diff__row + .c-diff__row { border-top: 1px solid rgba(255, 255, 255, .03); }
+
+.c-diff__row--add    { background: rgba(46, 160, 67, .13); border-left-color: #2ea043; }
+.c-diff__row--remove { background: rgba(248, 81, 73, .13); border-left-color: #f85149; }
+
+/* ── Gutter (satır no + işaret) ── */
+.c-diff__gutter {
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, .25);
+    border-right: 1px solid rgba(255, 255, 255, .06);
+}
+
+.c-diff__row--add    .c-diff__gutter { background: rgba(46, 160, 67, .08); }
+.c-diff__row--remove .c-diff__gutter { background: rgba(248, 81, 73, .08); }
+
+.c-diff__ln {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 2.6rem;
+    padding: 0 0.6rem;
+    color: rgba(255, 255, 255, .2);
+    user-select: none;
+    font-size: 0.78rem;
+}
+
+.c-diff__ln + .c-diff__ln {
+    border-left: 1px solid rgba(255, 255, 255, .05);
+}
+
+.c-diff__row--add    .c-diff__ln { color: rgba(126, 231, 135, .5); }
+.c-diff__row--remove .c-diff__ln { color: rgba(255, 140, 140, .5); }
+
+/* ── +/− işareti ── */
+.c-diff__sign {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    user-select: none;
+    padding-left: 0.2rem;
+}
+
+.c-diff__row--add    .c-diff__sign { color: #3fb950; }
+.c-diff__row--remove .c-diff__sign { color: #f85149; }
+
+/* ── Kod ── */
+.c-diff__code {
+    flex: 1;
+    display: block;
+    padding: 0.05rem var(--c-space-3) 0.05rem 0.6rem;
+    color: #d4d4d4;
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: pre;
+}
+
+/* ── Inline diff işaretleri ── */
+mark.c-diff__mark {
+    color: inherit;
+    padding: 0 1px;
+}
+
+mark.c-diff__mark--add    { background: rgba(46, 160, 67, .55); }
+mark.c-diff__mark--remove { background: rgba(248, 81, 73, .55); }

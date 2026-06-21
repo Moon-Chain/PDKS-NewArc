@@ -1,0 +1,95 @@
+/* c-changelog: tag odaklı kompakt değişiklik günlüğü */
+
+c-change {
+    display: none;
+}
+
+.c-changelog {
+    display: block;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    overflow: hidden;
+    margin: var(--c-space-3) 0;
+}
+
+.c-changelog + .c-changelog {
+    margin-top: calc(-1 * var(--c-space-3) + var(--c-space-1));
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top-color: transparent;
+}
+
+/* İki c-changelog yan yana geldiğinde aralarındaki boşluğu kapat */
+.c-changelog + .c-changelog {
+    margin-top: calc(var(--c-space-1) * -1);
+}
+
+.c-changelog__header {
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+    padding: 0.5rem var(--c-space-3);
+    background-color: var(--c-bg-subtle);
+    border-bottom: 1px solid var(--c-border);
+}
+
+.c-changelog__version {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--c-text);
+}
+
+.c-changelog__date {
+    font-size: 0.8rem;
+    color: var(--c-text-muted);
+    margin-left: auto;
+}
+
+.c-changelog__list {
+    list-style: none;
+    padding: var(--c-space-2) 0;
+    margin: 0;
+}
+
+.c-changelog__item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--c-space-2);
+    padding: 0.22rem var(--c-space-3);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.c-changelog__tag {
+    display: inline-block;
+    padding: 0.06em 0.5em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    flex-shrink: 0;
+    min-width: 5em;
+    text-align: center;
+}
+
+.c-changelog__tag--added      { background-color: rgba(25, 135, 84, .12);  color: #198754; }
+.c-changelog__tag--changed     { background-color: rgba(13, 110, 253, .1);  color: #0d6efd; }
+.c-changelog__tag--fixed       { background-color: rgba(255, 193, 7, .15);  color: #a07a00; }
+.c-changelog__tag--removed     { background-color: rgba(220, 53, 69, .1);   color: #dc3545; }
+.c-changelog__tag--deprecated  { background-color: rgba(253, 126, 20, .12); color: #c75a00; }
+.c-changelog__tag--security    { background-color: rgba(111, 66, 193, .1);  color: #6f42c1; }
+
+[data-theme="dark"] .c-changelog__tag--added      { color: #3dd68c; }
+[data-theme="dark"] .c-changelog__tag--changed     { color: #58a6ff; }
+[data-theme="dark"] .c-changelog__tag--fixed       { color: #e3b341; }
+[data-theme="dark"] .c-changelog__tag--removed     { color: #ff7b72; }
+[data-theme="dark"] .c-changelog__tag--deprecated  { color: #ffa657; }
+[data-theme="dark"] .c-changelog__tag--security    { color: #bc8cff; }
+
+.c-changelog__text {
+    flex: 1;
+    color: var(--c-text);
+    opacity: 0.85;
+}

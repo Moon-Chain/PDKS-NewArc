@@ -1,0 +1,146 @@
+/* c-live-demo: sol düzenlenebilir kod, sağ canlı önizleme */
+
+.c-live-demo {
+    display: block;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    overflow: hidden;
+    margin: var(--c-space-3) 0;
+}
+
+.c-live-demo__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35rem var(--c-space-3);
+    background-color: var(--c-bg-subtle);
+    border-bottom: 1px solid var(--c-border);
+    gap: var(--c-space-2);
+}
+
+.c-live-demo__label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--c-text-muted);
+    user-select: none;
+}
+
+.c-live-demo__copy {
+    background: none;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    padding: 0.18rem 0.6rem;
+    font-size: 0.75rem;
+    color: var(--c-text-muted);
+    cursor: pointer;
+    transition: color .12s, border-color .12s;
+    font-family: inherit;
+}
+
+.c-live-demo__copy:hover {
+    color: var(--c-text);
+    border-color: var(--c-text-muted);
+}
+
+.c-live-demo__panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 80px;
+}
+
+/* ── Sol: highlight pre + transparan textarea üst üste ── */
+.c-live-demo__code-panel {
+    border-right: 1px solid var(--c-border);
+    display: flex;
+    background: #1e1e1e;
+}
+
+.c-live-demo__editor {
+    position: relative;
+    flex: 1;
+    display: flex;
+}
+
+/* Ortak font sabiti — pre ve textarea tam aynı olmalı */
+.c-live-demo__highlight,
+.c-live-demo__textarea {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    tab-size: 2;
+    padding: var(--c-space-3);
+    box-sizing: border-box;
+    white-space: pre;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+/* Highlight katmanı (arka plan) */
+.c-live-demo__highlight {
+    position: absolute;
+    inset: 0;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.c-live-demo__highlight > code {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    background: transparent !important;
+    display: block;
+}
+
+/* Textarea (üst katman — transparan) */
+.c-live-demo__textarea {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    min-height: 120px;
+    background: transparent;
+    color: transparent;
+    caret-color: #aeafad;
+    border: none;
+    outline: none;
+    resize: vertical;
+    overflow-x: auto;
+    z-index: 1;
+}
+
+.c-live-demo__textarea::selection {
+    background-color: rgba(255, 255, 255, .25);
+    color: transparent;
+}
+
+/* ── Sağ: iframe önizleme ── */
+.c-live-demo__preview-panel {
+    background-color: var(--c-bg);
+    overflow: auto;
+    display: flex;
+    align-items: stretch;
+}
+
+.c-live-demo__iframe {
+    display: block;
+    width: 100%;
+    border: none;
+    min-height: 80px;
+    flex: 1;
+}
+
+@media (max-width: 640px) {
+    .c-live-demo__panels {
+        grid-template-columns: 1fr;
+    }
+    .c-live-demo__code-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--c-border);
+    }
+}

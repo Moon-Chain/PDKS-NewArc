@@ -1,0 +1,88 @@
+/* c-navbar: üst gezinme çubuğu */
+
+.c-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--c-navbar-height);
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-3);
+    padding: 0 var(--c-space-3);
+    background-color: var(--c-bg-elevated);
+    border-bottom: 1px solid var(--c-border);
+    z-index: 30;
+    box-sizing: border-box;
+}
+
+.c-navbar__burger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--c-border);
+    background-color: transparent;
+    color: var(--c-text);
+    cursor: pointer;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: var(--c-radius);
+}
+
+.c-navbar__burger:hover {
+    background-color: var(--c-accent-bg);
+}
+
+.c-navbar__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+    color: var(--c-text) !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.c-navbar__brand:hover {
+    text-decoration: none;
+}
+
+.c-navbar__logo {
+    flex-shrink: 0;
+}
+
+.c-navbar__title {
+    white-space: nowrap;
+}
+
+.c-navbar__actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+}
+
+.c-navbar__github {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--c-space-1);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    padding: 0.25rem 0.75rem;
+    color: var(--c-text) !important;
+    font-size: 0.875rem;
+}
+
+.c-navbar__github:hover {
+    background-color: var(--c-accent-bg);
+    text-decoration: none;
+}
+
+@media only screen and (max-width: 768px) {
+    .c-navbar__burger {
+        display: inline-flex;
+    }
+
+    .c-navbar__title {
+        display: none;
+    }
+}

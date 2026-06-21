@@ -1,17 +1,18 @@
 import esbuild from 'esbuild';
-import { rmSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { rmSync, mkdirSync, readFileSync, writeFileSync, cpSync, existsSync } from 'fs';
 import { createHash } from 'crypto';
+import { sep, join } from 'path';
 
 const isDev = process.argv.includes('--watch');
 
 // Önceki chunk'ları temizle
 try { rmSync('public/js', { recursive: true, force: true }); } catch {}
 mkdirSync('public/js', { recursive: true });
+try { rmSync('public/admin/js', { recursive: true, force: true }); } catch {}
+mkdirSync('public/admin/js', { recursive: true });
 
-const config: esbuild.BuildOptions = {
-  entryPoints: ['public/ts/app.ts'],
+const sharedConfig: Partial<esbuild.BuildOptions> = {
   bundle:      true,
-  outdir:      'public/js',
   format:      'esm',
   splitting:   true,
   chunkNames:  'chunks/[name]-[hash]',
@@ -21,6 +22,18 @@ const config: esbuild.BuildOptions = {
   define: {
     'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
   },
+};
+
+const config: esbuild.BuildOptions = {
+  ...sharedConfig,
+  entryPoints: ['public/ts/app.ts'],
+  outdir:      'public/js',
+};
+
+const adminConfig: esbuild.BuildOptions = {
+  ...sharedConfig,
+  entryPoints: ['public/admin/ts/app-admin.ts'],
+  outdir:      'public/admin/js',
 };
 
 function bumpSwVersion() {
@@ -39,15 +52,46 @@ function bumpSwVersion() {
   console.log(`SW cache versiyonu güncellendi: pdks-build-${hash}`);
 }
 
+function copyStaticAssets() {
+  // dist/server.js __dirname'e göre static dosyaları arar (dist/public, dist/uploads)
+  rmSync('dist/public', { recursive: true, force: true });
+  const tsDir      = join('public', 'ts');
+  const adminTsDir = join('public', 'admin', 'ts');
+  cpSync('public', 'dist/public', {
+    recursive: true,
+    filter: (src) =>
+      src !== tsDir      && !src.startsWith(tsDir + sep) &&
+      src !== adminTsDir && !src.startsWith(adminTsDir + sep),
+  });
+
+  if (existsSync('uploads')) {
+    cpSync('uploads', 'dist/uploads', { recursive: true });
+  } else {
+    mkdirSync('dist/uploads', { recursive: true });
+  }
+  console.log('Statik dosyalar dist/ içine kopyalandı (public, uploads)');
+}
+
 if (isDev) {
-  const ctx = await esbuild.context(config);
-  await ctx.watch();
-  console.log('esbuild watch modu (ESM + splitting) — değişiklikler izleniyor');
+  const [ctx, adminCtx] = await Promise.all([
+    esbuild.context(config),
+    esbuild.context(adminConfig),
+  ]);
+  await Promise.all([ctx.watch(), adminCtx.watch()]);
+  console.log('esbuild watch modu (ESM + splitting) — değişiklikler izleniyor (app + admin)');
 } else {
-  const result = await esbuild.build({ ...config, metafile: true });
-  const sizes = Object.entries(result.metafile!.outputs)
-    .map(([f, o]) => `  ${f.replace('public/js/', '')}: ${(o.bytes / 1024).toFixed(1)}kb`)
-    .join('\n');
-  console.log(`esbuild ESM build tamamlandı:\n${sizes}`);
+  const [result, adminResult] = await Promise.all([
+    esbuild.build({ ...config, metafile: true }),
+    esbuild.build({ ...adminConfig, metafile: true }),
+  ]);
+  const printSizes = (label: string, prefix: string, meta: esbuild.Metafile) => {
+    const sizes = Object.entries(meta.outputs)
+      .map(([f, o]) => `  ${f.replace(prefix, '')}: ${(o.bytes / 1024).toFixed(1)}kb`)
+      .join('\n');
+    console.log(`esbuild ESM build tamamlandı (${label}):\n${sizes}`);
+  };
+  printSizes('app', 'public/js/', result.metafile!);
+  printSizes('admin', 'public/admin/js/', adminResult.metafile!);
   bumpSwVersion(); // Production build'de SW'yi otomatik ver
+  copyStaticAssets();
 }

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genel Bakış — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-steps/c-steps.css">
+    <link rel="stylesheet" href="../components/c-stat/c-stat.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-copy-button/c-copy-button.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-file-tree/c-file-tree.css">
+    <link rel="stylesheet" href="../components/c-alert/c-alert.css">
+    <style>
+        .term {
+            color: var(--c-primary);
+            border-bottom: 1px dotted currentColor;
+            cursor: help;
+        }
+        .stat-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--c-space-3);
+            margin: var(--c-space-4) 0;
+        }
+        .page-actions {
+            display: flex;
+            gap: var(--c-space-2);
+            justify-content: flex-end;
+            margin-bottom: var(--c-space-4);
+        }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="overview" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Genel Bakış"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Genel Bakış</h1>
+
+                <p>
+                    PDKS, şirketlerin çalışanlarının işe giriş ve çıkışını
+                    <c-tooltip text="Quick Response kodu — kamerayla okunan 2 boyutlu barkod. PDKS'te giriş/çıkış doğrulaması için kullanılır." position="top"><span class="term">QR kod</span></c-tooltip>
+                    ile takip etmesini, izin ve fazla mesai taleplerini dijital olarak yönetmesini,
+                    anlık bildirimler almasını sağlayan bir personel takip platformudur.
+                </p>
+                <p>
+                    Sistem,
+                    <c-tooltip text="Çok kiracılı yapı: tek bir uygulama altyapısıyla birden fazla şirkete hizmet verilmesi. Her şirketin verisi tamamen birbirinden izole edilir." position="top"><span class="term">çok kiracılı (multi-tenant)</span></c-tooltip>
+                    mimarisiyle inşa edilmiştir.
+                    <c-tooltip text="Express.js — Node.js için hafif, popüler web sunucu çatısı. Route tanımlama ve middleware zincirlerini kolaylaştırır." position="top"><span class="term">Express.js</span></c-tooltip>
+                    +
+                    <c-tooltip text="TypeScript — JavaScript'e statik tip sistemi ekleyen programlama dili. Yazım hataları çalıştırmadan önce tespit edilir." position="top"><span class="term">TypeScript</span></c-tooltip>
+                    ile yazılmıştır ve
+                    <c-tooltip text="PostgreSQL — açık kaynaklı güçlü ilişkisel veritabanı. Karmaşık sorgular, JSON desteği ve bütünlük kuralları sunar." position="top"><span class="term">PostgreSQL</span></c-tooltip>
+                    veritabanı kullanmaktadır.
+                </p>
+
+                <div class="stat-row">
+                    <c-stat value="50" suffix="+" label="API Endpoint"></c-stat>
+                    <c-stat value="11" label="Veritabanı Tablosu" variant="accent"></c-stat>
+                    <c-stat value="4" label="Kullanıcı Rolü"></c-stat>
+                    <c-stat value="JWT" label="Kimlik Doğrulama" variant="accent"></c-stat>
+                    <c-stat value="SSE" label="Gerçek Zamanlı"></c-stat>
+                    <c-stat value="VAPID" label="Push Bildirim" variant="accent"></c-stat>
+                </div>
+
+                <c-callout variant="info" title="Bu belge kimin için?">
+                    Bu dokümantasyon, PDKS'i kullanan geliştiriciler ve proje üzerinde çalışan ekip için hazırlanmıştır.
+                    Her endpoint detaylı olarak açıklanmıştır; teknik terimler üzerine fare getirdiğinizde açıklama balonu görüntülenir.
+                </c-callout>
+
+                <h2>Teknoloji Yığını</h2>
+                <p>Projenin hangi katmanında hangi teknolojinin kullanıldığını aşağıda görebilirsiniz:</p>
+
+                <table>
+                    <thead>
+                        <tr><th>Katman</th><th>Teknoloji</th><th>Ne İşe Yarar?</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sunucu</td>
+                            <td>
+                                <c-tooltip text="Express.js — Node.js için hafif ve popüler bir web sunucu çatısı." position="right"><span class="term">Express.js</span></c-tooltip>
+                                +
+                                <c-tooltip text="TypeScript — JavaScript'e tip güvenliği ekleyen dil. Hataların büyük kısmı çalıştırmadan önce yakalanır." position="right"><span class="term">TypeScript</span></c-tooltip>
+                            </td>
+                            <td>Gelen HTTP isteklerini karşılar, doğrular, iş mantığını çalıştırır ve yanıt döner.</td>
+                        </tr>
+                        <tr>
+                            <td>Veritabanı</td>
+                            <td>
+                                <c-tooltip text="PostgreSQL — açık kaynaklı güçlü ilişkisel veritabanı. Karmaşık sorguları, JSON alanlarını ve güvenli ilişkileri destekler." position="right"><span class="term">PostgreSQL</span></c-tooltip>
+                            </td>
+                            <td>11 tablo, UUID birincil anahtarlar, soft-delete, otomatik trigger'lar ile veriyi kalıcı olarak saklar.</td>
+                        </tr>
+                        <tr>
+                            <td>Kimlik Doğrulama</td>
+                            <td>
+                                <c-tooltip text="JWT (JSON Web Token) — kullanıcı kimliği taşıyan, şifreli dijital bir bilet. Sunucu her istekte bu bileti doğrular." position="right"><span class="term">JWT</span></c-tooltip>
+                                +
+                                <c-tooltip text="httpOnly Cookie — sadece HTTP protokolüyle erişilebilen çerez. JavaScript ile okunamadığından XSS saldırılarına karşı güvenlidir." position="right"><span class="term">httpOnly Cookie</span></c-tooltip>
+                            </td>
+                            <td>Giriş yapan kullanıcıya şifreli bir bilet verilir; her istekte bu bilet doğrulanır. Token geçersiz kılmak için JTI kara listesi tutulur.</td>
+                        </tr>
+                        <tr>
+                            <td>Gerçek Zamanlı</td>
+                            <td>
+                                <c-tooltip text="SSE (Server-Sent Events) — sunucunun tarayıcıya anlık mesaj gönderdiği tek yönlü kalıcı bağlantı. WebSocket'ten daha basit; sadece sunucudan istemciye çalışır." position="right"><span class="term">SSE</span></c-tooltip>
+                            </td>
+                            <td>Devam kayıtları ve bildirimler, sayfa yenilemeden anında ekranda güncellenir.</td>
+                        </tr>
+                        <tr>
+                            <td>Push Bildirim</td>
+                            <td>
+                                <c-tooltip text="web-push (VAPID) — tarayıcı bildirimlerini sunucudan gönderen kütüphane. VAPID, sunucuyu tarayıcıya tanıtan açık/özel anahtar çiftidir." position="right"><span class="term">web-push (VAPID)</span></c-tooltip>
+                            </td>
+                            <td>Uygulama kapalıyken bile kullanıcının cihazına bildirim gönderilmesini sağlar.</td>
+                        </tr>
+                        <tr>
+                            <td>Raporlama</td>
+                            <td>
+                                <c-tooltip text="ExcelJS — Node.js için Excel dosyası oluşturma kütüphanesi. PDKS'te .xlsx devam ve izin raporları üretilir." position="right"><span class="term">ExcelJS</span></c-tooltip>
+                            </td>
+                            <td>Devam ve izin verilerini Excel (.xlsx) formatında raporlar halinde dışa aktarır.</td>
+                        </tr>
+                        <tr>
+                            <td>Loglama</td>
+                            <td>
+                                <c-tooltip text="Winston — Node.js için yapılandırılmış loglama kütüphanesi. Tarih, seviye ve mesaj içeren kayıtları dosyaya veya konsola yazar." position="right"><span class="term">Winston</span></c-tooltip>
+                            </td>
+                            <td>Uygulama olaylarını (hata, uyarı, bilgi) yapılandırılmış formatta kaydeder.</td>
+                        </tr>
+                        <tr>
+                            <td>Ön Yüz</td>
+                            <td>
+                                <c-tooltip text="Alpine.js — HTML etiketleri içinde doğrudan davranış tanımlamayı sağlayan hafif JavaScript çatısı." position="right"><span class="term">Alpine.js</span></c-tooltip>
+                                + Vanilla
+                                <c-tooltip text="TypeScript — JavaScript'in üzerine inşa edilmiş, statik tip sistemi ekleyen dil." position="right"><span class="term">TS</span></c-tooltip>
+                            </td>
+                            <td>Kullanıcı ve admin paneli SPA olarak sunulur; ağır bir çatı kullanılmadan hızlı ve hafif çalışır.</td>
+                        </tr>
+                        <tr>
+                            <td>Derleme</td>
+                            <td>
+                                <c-tooltip text="esbuild — çok hızlı JavaScript/TypeScript derleme aracı. TypeScript kodlarını tarayıcının anlayacağı JavaScript'e çevirir ve tek dosyaya toplar." position="right"><span class="term">esbuild</span></c-tooltip>
+                            </td>
+                            <td>TypeScript kaynak kodunu derleyip tarayıcıya hazır JavaScript bundle'larına dönüştürür.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Proje Yapısı</h2>
+                <p>
+                    Proje,
+                    <c-tooltip text="Sorumlulukların farklı katmanlara ayrılması. Route → Service → Repository zinciri kodun bakımını ve test edilmesini kolaylaştırır." position="top"><span class="term">katmanlı mimari</span></c-tooltip>
+                    prensibiyle organize edilmiştir.
+                    Her klasör belirli bir sorumluluğu üstlenir; dosyalar birbirinin sınırına geçmez.
+                </p>
+
+                <c-file-tree>
+                    <c-tree-folder name="PDKS-new/" open>
+                        <c-tree-folder name="core/" open>
+                            <c-tree-file name="AppError.ts"></c-tree-file>
+                            <c-tree-file name="BaseRepository.ts"></c-tree-file>
+                            <c-tree-file name="Logger.ts"></c-tree-file>
+                        </c-tree-folder>
+                        <c-tree-folder name="db/" open>
+                            <c-tree-file name="connection.ts"></c-tree-file>
+                            <c-tree-file name="migrate.ts"></c-tree-file>
+                            <c-tree-file name="seed.ts"></c-tree-file>
+                            <c-tree-folder name="migrations/">
+                                <c-tree-file name="001_companies.sql"></c-tree-file>
+                                <c-tree-file name="002_initial_schema.sql"></c-tree-file>
+                            </c-tree-folder>
+                        </c-tree-folder>
+                        <c-tree-folder name="middleware/">
+                            <c-tree-file name="auth.ts"></c-tree-file>
+                            <c-tree-file name="roles.ts"></c-tree-file>
+                            <c-tree-file name="rateLimit.ts"></c-tree-file>
+                            <c-tree-file name="validate.ts"></c-tree-file>
+                        </c-tree-folder>
+                        <c-tree-folder name="routes/v1/" open>
+                            <c-tree-file name="auth.ts"></c-tree-file>
+                            <c-tree-file name="attendance.ts"></c-tree-file>
+                            <c-tree-file name="leaves.ts"></c-tree-file>
+                            <c-tree-file name="overtime.ts"></c-tree-file>
+                            <c-tree-file name="users.ts"></c-tree-file>
+                            <c-tree-file name="notifications.ts"></c-tree-file>
+                            <c-tree-file name="reports.ts"></c-tree-file>
+                            <c-tree-folder name="admin/">
+                                <c-tree-file name="dashboard.ts"></c-tree-file>
+                                <c-tree-file name="audit.ts"></c-tree-file>
+                            </c-tree-folder>
+                        </c-tree-folder>
+                        <c-tree-folder name="repositories/">
+                            <c-tree-file name="AttendanceRepository.ts"></c-tree-file>
+                            <c-tree-file name="UserRepository.ts"></c-tree-file>
+                        </c-tree-folder>
+                        <c-tree-folder name="services/">
+                            <c-tree-file name="AttendanceService.ts"></c-tree-file>
+                            <c-tree-file name="LeaveService.ts"></c-tree-file>
+                        </c-tree-folder>
+                        <c-tree-folder name="events/">
+                            <c-tree-file name="emitter.ts"></c-tree-file>
+                            <c-tree-file name="listeners.ts"></c-tree-file>
+                        </c-tree-folder>
+                        <c-tree-folder name="public/">
+                            <c-tree-file name="index.html"></c-tree-file>
+                            <c-tree-folder name="admin/">
+                                <c-tree-file name="index.html"></c-tree-file>
+                            </c-tree-folder>
+                        </c-tree-folder>
+                        <c-tree-file name="server.ts"></c-tree-file>
+                    </c-tree-folder>
+                </c-file-tree>
+
+                <c-callout variant="tip" title="Katmanlar ne anlama geliyor?">
+                    <strong>Route</strong> — gelen isteği alır, doğrular ve servise iletir.<br>
+                    <strong>Service</strong> — iş mantığını çalıştırır (bakiye kontrolü, bildirim gönderme, vb.).<br>
+                    <strong>Repository</strong> — veritabanı sorgularını yönetir; SQL burada yaşar.<br>
+                    <strong>Middleware</strong> — istekler route'a ulaşmadan önce çalışır (kimlik doğrulama, yetki kontrolü, vb.).
+                </c-callout>
+
+                <h2>Kimlik Doğrulama Akışı</h2>
+                <p>
+                    PDKS'e giriş yaparken arka planda şu adımlar gerçekleşir.
+                    Her adım, bir sonraki için zemin hazırlar; herhangi biri başarısız olursa istek reddedilir.
+                </p>
+
+                <c-steps>
+                    <c-step title="Kullanıcı giriş isteği gönderir">
+                        <p>
+                            <code>POST /api/v1/auth/login</code> çağrısıyla <code>personnelId</code> ve <code>password</code> gönderilir.
+                            Bu endpoint,
+                            <c-tooltip text="Rate Limiting — belirli bir süre içinde gelebilecek istek sayısını sınırlar. Brute-force saldırılarını (şifreyi tahmin etmeye çalışmak) engeller." position="right"><span class="term">rate limiting</span></c-tooltip>
+                            ile korunur: kısa sürede çok fazla hatalı deneme yapılırsa IP geçici olarak engellenir.
+                        </p>
+                    </c-step>
+                    <c-step title="Sunucu şifreyi doğrular ve JWT oluşturur">
+                        <p>
+                            Şifre bcrypt ile karşılaştırılır. Eşleşirse sunucu bir
+                            <c-tooltip text="JWT (JSON Web Token) — içinde kullanıcı ID'si, rolü ve şirket ID'si gibi bilgiler saklayan şifreli dijital bilet. 8 saat geçerlidir." position="right"><span class="term">JWT</span></c-tooltip>
+                            üretir. Bu bilet içinde <code>id</code>, <code>role</code>, <code>company_id</code> ve
+                            <c-tooltip text="JTI (JWT ID) — her token'a verilen eşsiz numara. Çıkış yapıldığında bu numara kara listeye eklenerek token geçersiz kılınır." position="right"><span class="term">jti</span></c-tooltip>
+                            alanları bulunur.
+                        </p>
+                    </c-step>
+                    <c-step title="Token httpOnly Cookie olarak tarayıcıya gönderilir">
+                        <p>
+                            JWT,
+                            <c-tooltip text="httpOnly Cookie — yalnızca HTTP protokolü üzerinden erişilebilen çerez. JavaScript kodları bu çerezi okuyamaz, XSS saldırılarına karşı güvenlidir." position="right"><span class="term">httpOnly cookie</span></c-tooltip>
+                            (<code>pdks_token</code>) olarak set edilir. Tarayıcı bundan sonra her istekte bu cookie'yi otomatik olarak ekler; istemci tarafında ayrıca token yönetmeye gerek kalmaz.
+                        </p>
+                    </c-step>
+                    <c-step title="Sonraki isteklerde token doğrulanır">
+                        <p>
+                            Her yeni API isteğinde auth
+                            <c-tooltip text="Middleware — istek ile route arasına giren yardımcı fonksiyon. Kimlik doğrulama, yetki kontrolü, loglama gibi işleri merkezi yapar." position="right"><span class="term">middleware</span></c-tooltip>
+                            devreye girer:
+                        </p>
+                        <ol>
+                            <li>Cookie'den JWT okunur.</li>
+                            <li>İmza doğrulanır (sunucunun gizli anahtarıyla).</li>
+                            <li>
+                                <c-tooltip text="JTI kara listesi — çıkış yapılan token'ların ID'lerini tutan veritabanı tablosu. Bu sayede Redis'e gerek kalmaz." position="right"><span class="term">JTI kara listesi</span></c-tooltip>
+                                kontrol edilir; token çıkış yapılmışsa reddedilir.
+                            </li>
+                            <li>Geçerliyse <code>req.user</code> set edilir ve istek devam eder.</li>
+                        </ol>
+                    </c-step>
+                    <c-step title="Çıkış yapıldığında token geçersiz kılınır">
+                        <p>
+                            <code>POST /api/v1/auth/logout</code> çağrıldığında token'ın
+                            <c-tooltip text="JTI — her JWT'ye verilen eşsiz kimlik numarası." position="right"><span class="term">JTI</span></c-tooltip>'si
+                            <code>token_blacklist</code> tablosuna eklenir. Cookie temizlenir. Artık o token hiçbir istekte kabul edilmez.
+                        </p>
+                    </c-step>
+                </c-steps>
+
+                <h2>Çok Kiracılılık (Multi-Tenancy)</h2>
+                <p>
+                    PDKS,
+                    <c-tooltip text="Multi-tenant (çok kiracılı): tek bir uygulama ile birden fazla müşteriye hizmet verilen yapı. Her şirket kendi verisini görür; başka şirketlerin verisi erişilemez olur." position="top"><span class="term">çok kiracılı</span></c-tooltip>
+                    bir yapıya sahiptir. Bunun anlamı şudur: Şirket A'nın çalışanları, Şirket B'nin verilerine hiçbir şekilde erişemez.
+                </p>
+                <p>
+                    Bu izolasyon nasıl sağlanır?
+                    Veritabanındaki tüm tablolar bir <code>company_id</code> alanı taşır.
+                    Kullanıcı giriş yaptığında
+                    <c-tooltip text="JWT — şifreli dijital bilet. İçinde company_id bilgisi bulunur. Her istekte bu bilet okunur ve sorgu otomatik olarak o şirketin verisiyle sınırlandırılır." position="top"><span class="term">JWT</span></c-tooltip>
+                    içine <code>company_id</code> gömülür.
+                    Her API isteğinde bu değer okunur ve SQL sorgusu otomatik olarak yalnızca o şirketin kayıtlarını getirir.
+                </p>
+
+                <h2>Kullanıcı Rolleri ve Yetkiler</h2>
+                <p>
+                    Sistemde 4 farklı kullanıcı rolü vardır. Her rol farklı yetkiler taşır;
+                    bir rolün yapabilecekleri bir
+                    <c-tooltip text="Middleware — istek işlenmeden önce çalışan yardımcı fonksiyon. Rol kontrolü de bir middleware'dir: kullanıcının yetkisi yoksa istek bloklanır." position="top"><span class="term">middleware</span></c-tooltip>
+                    aracılığıyla kontrol edilir.
+                </p>
+
+                <c-callout variant="info" title="Yetki nasıl belirlenir?">
+                    <c-tooltip text="JWT — her istekte gelen şifreli bilet. İçindeki 'role' alanı hangi işlemlere izin verileceğini belirler." position="right"><span class="term">JWT</span></c-tooltip>
+                    içindeki <code>role</code> alanı okunur. İstenen işlem için gereken yetki bu rolde varsa istek devam eder; yoksa <code>403 Forbidden</code> döner.
+                </c-callout>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Yetki</th>
+                            <th><c-badge variant="danger">admin</c-badge></th>
+                            <th><c-badge variant="warning">mudur</c-badge></th>
+                            <th><c-badge variant="info">takim_lideri</c-badge></th>
+                            <th><c-badge variant="secondary">personel</c-badge></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <c-tooltip text="Kullanıcı listesi ve profil detaylarını görme. Personel rolü bu yetki olmadığından diğer çalışanları göremez." position="right">
+                                    <span class="term">user:view</span>
+                                </c-tooltip>
+                            </td>
+                            <td>✅</td><td>✅</td><td>✅</td><td>❌</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <c-tooltip text="Kullanıcı oluşturma, güncelleme, silme ve şifre sıfırlama. Sadece admin ve müdür yapabilir." position="right">
+                                    <span class="term">user:manage</span>
+                                </c-tooltip>
+                            </td>
+                            <td>✅</td><td>✅</td><td>❌</td><td>❌</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <c-tooltip text="QR kod ile giriş/çıkış kaydı oluşturabilme. Tüm roller bu işlemi yapabilir." position="right">
+                                    <span class="term">attendance:checkin</span>
+                                </c-tooltip>
+                            </td>
+                            <td>✅</td><td>✅</td><td>✅</td><td>✅</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <c-tooltip text="Manuel devam kaydı ekleme, güncelleme ve silme. Personel kendi kaydını düzenleyemez." position="right">
+                                    <span class="term">attendance:manage</span>
+                                </c-tooltip>
+                            </td>
+                            <td>✅</td><td>✅</td><td>❌</td><td>❌</td>
+                        </tr>
+                        <tr><td>leave:view</td><td>✅</td><td>✅</td><td>✅</td><td>✅ (kendi)</td></tr>
+                        <tr><td>leave:request</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                        <tr>
+                            <td>
+                                <c-tooltip text="İzin taleplerini onaylama veya reddetme yetkisi. Takım liderleri de onaylayabilir." position="right">
+                                    <span class="term">leave:approve</span>
+                                </c-tooltip>
+                            </td>
+                            <td>✅</td><td>✅</td><td>✅</td><td>❌</td>
+                        </tr>
+                        <tr><td>overtime:view</td><td>✅</td><td>✅</td><td>✅</td><td>✅ (kendi)</td></tr>
+                        <tr><td>overtime:request</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                        <tr><td>overtime:approve</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                        <tr><td>settings:view</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                        <tr><td>dashboard:view</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                        <tr>
+                            <td>
+                                <c-tooltip text="Denetim günlüğü (audit log) görüntüleme yetkisi. Sadece admin'e özeldir." position="right">
+                                    <span class="term">audit:view</span>
+                                </c-tooltip>
+                            </td>
+                            <td>✅</td><td>❌</td><td>❌</td><td>❌</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Temel Özellikler</h2>
+                <table>
+                    <thead><tr><th>Özellik</th><th>Nasıl Çalışır?</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <c-tooltip text="QR kod — kamera ile okunan 2 boyutlu barkod. Ofis girişinde ekranda gösterilir." position="right"><span class="term">QR Giriş/Çıkış</span></c-tooltip>
+                            </td>
+                            <td>Ofis ekranında dönen QR kod, <code>qr_secret</code> ile imzalanmıştır. Taranan QR değeri sunucuya gönderilir, giriş/çıkış kaydedilir. Aynı kullanıcı 30 saniye içinde tekrar kayıt yapamaz.</td>
+                        </tr>
+                        <tr>
+                            <td>Uzaktan Giriş</td>
+                            <td><code>can_remote_check_in</code> bayrağı açık olan kullanıcılar konumlarıyla birlikte uzaktan kayıt yapabilir. GPS koordinatları da saklanır.</td>
+                        </tr>
+                        <tr>
+                            <td>İzin Bakiyesi</td>
+                            <td>İzin talebi <em>oluşturulduğunda</em> bakiye düşülmez; yalnızca <strong>onaylandığında</strong> düşülür. Hesaplamada resmi tatiller ve hafta sonu günleri dışarıda tutulur.</td>
+                        </tr>
+                        <tr>
+                            <td>Offline Senkronizasyon</td>
+                            <td>Bağlantı yokken yapılan girişler <code>offline_queued</code> bayrağıyla kaydedilir; bağlantı gelince senkronize edilir.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <c-tooltip text="Soft Delete — veriyi fiziksel olarak silmek yerine 'silinmiş' olarak işaretleme. Veri korunur ve geri alınabilir." position="right"><span class="term">Soft Delete</span></c-tooltip>
+                            </td>
+                            <td>Silinen kayıtlar veritabanından kaldırılmaz; <code>is_deleted = true</code> yapılır. Bu sayede yanlışlıkla silinen veriler kurtarılabilir.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <c-tooltip text="Audit Log — sistemde yapılan her işlemin (kim, ne yaptı, ne zaman, öncesi/sonrası) kaydını tutan denetim günlüğü." position="right"><span class="term">Audit Log</span></c-tooltip>
+                            </td>
+                            <td>Her önemli işlem (kullanıcı oluşturma, izin onayı, vb.) <code>audit_log</code> tablosuna kaydedilir. Kim yaptı, ne değişti, ne zaman oldu bilgisi tutulur.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>HTTP Yanıt Yapısı</h2>
+                <p>
+                    Tüm API endpoint'leri tutarlı bir
+                    <c-tooltip text="JSON (JavaScript Object Notation) — veri taşımak için kullanılan metin tabanlı format. İnsan tarafından okunabilir ve makineler için kolayca işlenebilir." position="top"><span class="term">JSON</span></c-tooltip>
+                    yapısı döner:
+                </p>
+                <c-code-block lang="json">// Başarılı yanıt
+{
+  "success": true,
+  "data": { ... }   // veya direkt alan adıyla: "user", "leaves", vb.
+}
+
+// Hata yanıtı
+{
+  "success": false,
+  "message": "Hata açıklaması",
+  "code": "HATA_KODU"   // opsiyonel
+}</c-code-block>
+
+                <c-alert variant="info" dismissible>
+                    <strong>İpucu:</strong> Tüm hata yanıtlarında HTTP durum kodu da anlamlıdır: <code>400</code> (hatalı istek), <code>401</code> (giriş gerekli), <code>403</code> (yetkisiz), <code>404</code> (bulunamadı), <code>429</code> (çok fazla istek), <code>500</code> (sunucu hatası).
+                </c-alert>
+
+                <c-pagination-nav next-href="auth.html" next-label="Kimlik Doğrulama"></c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-steps/c-steps.js"></script>
+    <script src="../components/c-stat/c-stat.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-copy-button/c-copy-button.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-file-tree/c-file-tree.js"></script>
+    <script src="../components/c-alert/c-alert.js"></script>
+</body>
+
+</html>

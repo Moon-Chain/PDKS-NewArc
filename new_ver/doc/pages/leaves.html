@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İzin Yönetimi — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-tabs/c-tabs.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-timeline/c-timeline.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-alert/c-alert.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="leaves" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>İzin Yönetimi"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>İzin Yönetimi</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/leaves</code>
+                </p>
+                <p>
+                    İzin modülü, çalışanların yıllık izin, hastalık raporu veya mazeret izni talep etmesini ve bu taleplerin
+                    yöneticiler tarafından onaylanmasını veya reddedilmesini sağlar.
+                    Tüm işlemler
+                    <c-tooltip text="EventEmitter — Node.js'in yerleşik olay sistemi. İzin onaylandığında 'leave:approved' gibi olaylar yayınlanır; bu olayları dinleyen listeners bildirim gönderir." position="top"><span class="term">olay tabanlı</span></c-tooltip>
+                    çalışır: onay/ret işlemi gerçekleştiğinde ilgili kullanıcıya otomatik bildirim gider.
+                </p>
+
+                <h2>İzin Talep Durumları</h2>
+                <p>Bir izin talebi oluşturulduğunda <code>pending</code> durumunda başlar ve şu şekilde ilerler:</p>
+
+                <c-timeline>
+                    <c-timeline-item date="1. Adım" title="pending — Bekliyor">
+                        <p>Kullanıcı <code>POST /leaves</code> ile talep oluşturur. Talebin durumu <code>pending</code> olur ve yöneticiye bildirim gönderilir.</p>
+                    </c-timeline-item>
+                    <c-timeline-item date="2a. Onaylandı" title="approved — Onaylandı">
+                        <p>
+                            Yönetici <code>PATCH /leaves/:id/approve</code> ile onaylar.
+                            <strong>Yıllık izin</strong> ise <code>leave_balance</code>'dan <code>days</code> kadar düşülür.
+                            Kullanıcıya <c-badge variant="success">success</c-badge> tipinde bildirim gider.
+                        </p>
+                    </c-timeline-item>
+                    <c-timeline-item date="2b. Reddedildi" title="rejected — Reddedildi">
+                        <p>
+                            Yönetici <code>PATCH /leaves/:id/reject</code> ile reddeder.
+                            Bakiye değişmez. Kullanıcıya <c-badge variant="danger">error</c-badge> tipinde bildirim gider.
+                        </p>
+                    </c-timeline-item>
+                    <c-timeline-item date="2c. İptal" title="iptal edildi">
+                        <p>
+                            Yalnızca kullanıcı, kendi <code>pending</code> talebini <code>PATCH /leaves/:id/cancel</code> ile iptal edebilir.
+                            Onaylanmış izinler iptal edilemez.
+                        </p>
+                    </c-timeline-item>
+                </c-timeline>
+
+                <h2>İzin Türleri</h2>
+                <table>
+                    <thead><tr><th>Tür Kodu</th><th>Adı</th><th>Bakiyeden Düşülür mü?</th><th>Açıklama</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><code>annual</code></td>
+                            <td>Yıllık İzin</td>
+                            <td>✅ Evet</td>
+                            <td>Her çalışanın yıllık hak ettiği izin. Varsayılan bakiye 14 gündür.</td>
+                        </tr>
+                        <tr>
+                            <td><code>report</code></td>
+                            <td>Hastalık / Rapor</td>
+                            <td>❌ Hayır</td>
+                            <td>Doktor raporu gerektiren sağlık izni. Bakiyeden düşülmez.</td>
+                        </tr>
+                        <tr>
+                            <td><code>excuse</code></td>
+                            <td>Mazeret İzni</td>
+                            <td>❌ Hayır</td>
+                            <td>Beklenmedik durum, resmi işlem vb. için verilen izin. Bakiyeden düşülmez.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <c-callout variant="warning" title="İzin bakiyesi ne zaman düşülür?">
+                    Talep <em>oluşturulduğunda</em> bakiye kesilmez.
+                    Yalnızca <strong>onaylandığında</strong> kesilir.
+                    Talep reddedilirse bakiye hiç etkilenmez.
+                    Gün sayısı hesaplanırken resmi tatiller ve hafta sonu günleri otomatik olarak çıkarılır.
+                </c-callout>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/leaves" summary="İzin taleplerini listele (rol bazlı filtre)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "page",   "type": "integer", "required": false, "desc": "Sayfa numarası (varsayılan: 1)." },
+                            { "name": "limit",  "type": "integer", "required": false, "desc": "Sayfa başı kayıt sayısı (varsayılan: 20)." },
+                            { "name": "status", "type": "string",  "required": false, "desc": "Durum filtresi: pending | approved | rejected" },
+                            { "name": "userId", "type": "UUID",    "required": false, "desc": "Belirli bir kullanıcının talepleri (yalnızca admin/mudur kullanabilir)." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"rows\": [\n    {\n      \"id\": \"uuid-...\",\n      \"user_id\": \"uuid-...\",\n      \"user_name\": \"Ahmet Yılmaz\",\n      \"start_date\": \"2026-07-01\",\n      \"end_date\": \"2026-07-05\",\n      \"days\": 5,\n      \"type\": \"annual\",\n      \"status\": \"pending\",\n      \"reason\": \"Yaz tatili\"\n    }\n  ],\n  \"total\": 8\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="info" title="Kim neyi görebilir?">
+                    <strong>Personel:</strong> yalnızca kendi taleplerini görür.<br>
+                    <strong>Takım lideri / müdür:</strong> kendi ekibinin taleplerini görür.<br>
+                    <strong>Admin:</strong> tüm şirketin taleplerini görür.
+                </c-callout>
+
+                <c-api-endpoint method="POST" url="/api/v1/leaves" summary="Yeni izin talebi oluştur">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "startDate",      "type": "date",   "required": true,  "desc": "İzin başlangıç tarihi (YYYY-MM-DD)." },
+                            { "name": "endDate",        "type": "date",   "required": true,  "desc": "İzin bitiş tarihi (YYYY-MM-DD). Başlangıçtan önce olamaz." },
+                            { "name": "days",           "type": "integer","required": true,  "desc": "İş günü sayısı (tatil ve hafta sonu dahil değil). Genellikle client tarafında hesaplanır." },
+                            { "name": "type",           "type": "enum",   "required": true,  "desc": "annual | report | excuse" },
+                            { "name": "reason",         "type": "string", "required": true,  "desc": "İzin gerekçesi. Yöneticiye gösterilir." },
+                            { "name": "attachmentPath", "type": "string", "required": false, "desc": "Ek belge (rapor için doktor belgesi gibi). Dosya yolu." }
+                        ],
+                        "request":  "{\n  \"startDate\": \"2026-07-01\",\n  \"endDate\": \"2026-07-05\",\n  \"days\": 5,\n  \"type\": \"annual\",\n  \"reason\": \"Yaz tatili planım\"\n}",
+                        "response": "{\n  \"success\": true,\n  \"leave\": {\n    \"id\": \"uuid-...\",\n    \"status\": \"pending\",\n    \"start_date\": \"2026-07-01\",\n    \"end_date\": \"2026-07-05\",\n    \"days\": 5\n  }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/leaves/:id/approve" summary="İzni onayla — bakiyeyi düş (leave:approve)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"leave\": { \"id\": \"uuid-...\", \"status\": \"approved\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/leaves/:id/reject" summary="İzni reddet (leave:approve)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"leave\": { \"id\": \"uuid-...\", \"status\": \"rejected\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/leaves/:id/cancel" summary="Kendi pending talebini iptal et">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"leave\": { \"id\": \"uuid-...\", \"status\": \"cancelled\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-alert variant="info" dismissible>
+                    Onay ve ret işlemlerinden sonra
+                    <c-tooltip text="EventEmitter — olayların yayınlandığı ve dinlendiği sistem. leave:approved yayınlanınca listener otomatik bildirim gönderir." position="top"><span class="term">olay sistemi</span></c-tooltip>
+                    devreye girer: <code>leave:approved</code> veya <code>leave:rejected</code> eventi yayınlanır, ilgili kullanıcıya hem in-app hem de (abonelik varsa) push bildirimi gider.
+                </c-alert>
+
+                <c-pagination-nav
+                    prev-href="users.html" prev-label="Kullanıcılar"
+                    next-href="overtime.html" next-label="Fazla Mesai">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-tabs/c-tabs.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-timeline/c-timeline.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-alert/c-alert.js"></script>
+</body>
+
+</html>

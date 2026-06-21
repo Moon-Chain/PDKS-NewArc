@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDKS — Dokümantasyon</title>
+
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="components/c-button/c-button.css">
+    <link rel="stylesheet" href="components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="components/c-search-box/c-search-box.css">
+    <link rel="stylesheet" href="components/c-card/c-card.css">
+    <link rel="stylesheet" href="components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="components/c-badge/c-badge.css">
+
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #0d6efd11 0%, #19875411 100%);
+            border: 1px solid var(--c-border);
+            border-radius: var(--c-radius-lg);
+            padding: var(--c-space-5);
+            margin-bottom: var(--c-space-5);
+        }
+
+        .hero h1 { margin-top: 0; font-size: 2rem; }
+        .hero p { color: var(--c-text-muted); margin-bottom: 0; font-size: 1.05rem; }
+
+        .stat-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--c-space-3);
+            margin: var(--c-space-4) 0;
+        }
+
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--c-space-2);
+            border: 1px solid var(--c-border);
+            border-radius: var(--c-radius);
+            padding: 0.4rem 0.9rem;
+            font-size: 0.875rem;
+            background: var(--c-bg-elevated);
+        }
+
+        .stat-chip strong { color: var(--c-text); }
+        .stat-chip span { color: var(--c-text-muted); }
+    </style>
+</head>
+
+<body>
+    <c-navbar brand="PDKS Dokümantasyonu" home="#" github-url="#"></c-navbar>
+    <c-sidebar base="pages/" home="#"></c-sidebar>
+
+    <main class="page">
+        <div class="page-inner">
+
+            <div class="hero">
+                <h1>PDKS — Personel Devam Kontrol Sistemi</h1>
+                <p>
+                    Express.js + TypeScript tabanlı, çok kiracılı (multi-tenant) SaaS personel takip platformu.
+                    QR tabanlı devam kaydı, izin / fazla mesai yönetimi, gerçek zamanlı bildirimler ve kapsamlı admin paneli içerir.
+                </p>
+                <div class="stat-row">
+                    <div class="stat-chip"><strong>50+</strong><span>Endpoint</span></div>
+                    <div class="stat-chip"><strong>11</strong><span>DB Tablosu</span></div>
+                    <div class="stat-chip"><strong>4</strong><span>Kullanıcı Rolü</span></div>
+                    <div class="stat-chip"><strong>PostgreSQL</strong><span>Veritabanı</span></div>
+                    <div class="stat-chip"><strong>JWT</strong><span>Kimlik Doğrulama</span></div>
+                    <div class="stat-chip"><strong>SSE</strong><span>Gerçek Zamanlı</span></div>
+                </div>
+            </div>
+
+            <c-search-box target=".doc-card" placeholder="Sayfa ara..." empty-text="Eşleşen sayfa bulunamadı."></c-search-box>
+
+            <h2>Başlangıç</h2>
+            <div class="c-grid">
+                <c-card class="c-index-card">
+                    <div slot="header">Genel Bakış</div>
+                    <p>Proje yapısı, teknoloji yığını, kurulum ve rol/yetki matrisi.</p>
+                    <div slot="footer"><a href="pages/overview.html">İncele &rarr;</a></div>
+                </c-card>
+            </div>
+
+            <h2>API Referans</h2>
+            <div class="c-grid">
+                <c-card class="c-index-card">
+                    <div slot="header">Kimlik Doğrulama</div>
+                    <p>Giriş, çıkış, aktif kullanıcı ve şifre değiştirme endpoint'leri.</p>
+                    <div slot="footer"><a href="pages/auth.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Devam Takibi</div>
+                    <p>QR tabanlı giriş/çıkış, manuel kayıt, günlük durum sorgulama.</p>
+                    <div slot="footer"><a href="pages/attendance.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Kullanıcılar</div>
+                    <p>Kullanıcı oluşturma, listeleme, güncelleme, silme ve avatar yükleme.</p>
+                    <div slot="footer"><a href="pages/users.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">İzin Yönetimi</div>
+                    <p>İzin talebi oluşturma, onaylama/reddetme ve iptal etme.</p>
+                    <div slot="footer"><a href="pages/leaves.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Fazla Mesai</div>
+                    <p>Fazla mesai talebi, onay süreci ve listeleme.</p>
+                    <div slot="footer"><a href="pages/overtime.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Bildirimler</div>
+                    <p>Kullanıcı bildirimleri — listeleme, okundu işaretleme, silme.</p>
+                    <div slot="footer"><a href="pages/notifications.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Tatil Günleri</div>
+                    <p>Şirkete özel resmi tatil günleri yönetimi.</p>
+                    <div slot="footer"><a href="pages/holidays.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Ayarlar</div>
+                    <p>Şirket yapılandırması: IP, QR secret, mesai saatleri.</p>
+                    <div slot="footer"><a href="pages/settings.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Raporlar</div>
+                    <p>Excel formatında devam ve izin raporları indirme.</p>
+                    <div slot="footer"><a href="pages/reports.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Gerçek Zamanlı (SSE)</div>
+                    <p>Server-Sent Events akışı — anlık devam ve bildirim güncellemeleri.</p>
+                    <div slot="footer"><a href="pages/events.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Push Bildirimler</div>
+                    <p>Web Push abonelik yönetimi ve VAPID anahtarı.</p>
+                    <div slot="footer"><a href="pages/push.html">İncele &rarr;</a></div>
+                </c-card>
+            </div>
+
+            <h2>Admin Panel</h2>
+            <div class="c-grid">
+                <c-card class="c-index-card">
+                    <div slot="header">Dashboard</div>
+                    <p>Günlük istatistikler, bekleyen onaylar, yaklaşan tatiller ve bölüm dağılımı.</p>
+                    <div slot="footer"><a href="pages/admin-dashboard.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Denetim Günlüğü</div>
+                    <p>Tüm sistem aksiyonlarının filtrelenebilir audit log tablosu.</p>
+                    <div slot="footer"><a href="pages/admin-audit.html">İncele &rarr;</a></div>
+                </c-card>
+            </div>
+
+            <h2>Veritabanı</h2>
+            <div class="c-grid">
+                <c-card class="c-index-card">
+                    <div slot="header">Şema Diyagramı</div>
+                    <p>11 tablo — uzay temasında, ilişki bağlantı çizgileriyle interaktif diyagram.</p>
+                    <div slot="footer"><a href="pages/database.html">İncele &rarr;</a></div>
+                </c-card>
+            </div>
+
+            <h2>Mimari</h2>
+            <div class="c-grid">
+                <c-card class="c-index-card">
+                    <div slot="header">Katman Mimarisi</div>
+                    <p>Tarayıcıdan PostgreSQL'e: Middleware → Route → Service → Repository akışı ve EventEmitter sistemi.</p>
+                    <div slot="footer"><a href="pages/arch-layers.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Boot Sekansı</div>
+                    <p>Server, kullanıcı uygulaması ve admin paneli başlarken hangi dosyanın hangi sırayla çalıştığı.</p>
+                    <div slot="footer"><a href="pages/arch-boot.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">DOM Yapısı</div>
+                    <p>index.html iskeletinden dinamik mount'a: statik DOM, sayfa geçişleri ve BasePage yaşam döngüsü.</p>
+                    <div slot="footer"><a href="pages/arch-dom.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Dosya Çalışma Sırası</div>
+                    <p>Build zamanı chunk üretimi, sunucu modül yükleme sırası ve tarayıcıda CSS/JS/SW yükleme önceliği.</p>
+                    <div slot="footer"><a href="pages/arch-files.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Sınıf Hiyerarşisi</div>
+                    <p>Backend (BaseRepository, BaseService) ve frontend (BasePage, BaseComponent) kalıtım ağaçları ve örneklenme zamanları.</p>
+                    <div slot="footer"><a href="pages/arch-classes.html">İncele &rarr;</a></div>
+                </c-card>
+                <c-card class="c-index-card">
+                    <div slot="header">Kullanıcı Akışları</div>
+                    <p>Login, QR check-in, izin talebi, onay, offline sync ve SSE bağlantısının tam dallanma akışı.</p>
+                    <div slot="footer"><a href="pages/arch-flows.html">İncele &rarr;</a></div>
+                </c-card>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="assets/js/project.js"></script>
+    <script src="components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="components/c-navbar/c-navbar.js"></script>
+    <script src="components/c-sidebar/c-sidebar.js"></script>
+    <script src="components/c-search-box/c-search-box.js"></script>
+    <script src="components/c-card/c-card.js"></script>
+    <script src="components/c-callout/c-callout.js"></script>
+    <script src="components/c-badge/c-badge.js"></script>
+</body>
+
+</html>

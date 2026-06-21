@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boot Sekansı — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+
+        /* ── Akış Ağacı ── */
+        .flow-tree {
+            background: var(--c-bg-code, #111);
+            border: 1px solid var(--c-border);
+            border-left: 3px solid var(--c-primary);
+            border-radius: var(--c-radius);
+            padding: 1.25rem 1.5rem;
+            font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.79rem;
+            line-height: 1.95;
+            overflow-x: auto;
+            white-space: pre;
+            margin: var(--c-space-3) 0;
+            color: var(--c-text);
+        }
+        .ft-t   { color: #f0c040; font-weight: 700; }   /* tetikleyici / başlangıç noktası */
+        .ft-f   { color: #7cb9f0; }                      /* fonksiyon / method çağrısı */
+        .ft-e   { color: #fb923c; }                      /* event / olay */
+        .ft-d   { color: #c084fc; }                      /* veri / değer */
+        .ft-c   { color: #86efac; }                      /* koşul / dal */
+        .ft-m   { color: #6b7280; font-style: italic; }  /* yorum */
+        .ft-err { color: #f87171; }                      /* hata yolu */
+        .ft-ok  { color: #4ade80; }                      /* başarı yolu */
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--c-text-muted);
+            margin: var(--c-space-5) 0 var(--c-space-2);
+        }
+        .section-label::before {
+            content: '';
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--c-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="arch-boot" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Mimari>Boot Sekansı"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Boot Sekansı</h1>
+
+                <p>
+                    Bu sayfa; sunucu (<code>server.ts</code>), kullanıcı uygulaması (<code>app.ts</code>) ve
+                    admin paneli (<code>app-admin.ts</code>) başladığında hangi adımın hangi sırayla
+                    çalıştığını, hangi modülün hangisini tetiklediğini detaylı olarak gösterir.
+                    Her dal <strong>gerçek kaynak kodundan</strong> türetilmiştir.
+                </p>
+
+                <c-callout variant="info" title="Renk rehberi">
+                    <span style="color:#f0c040;font-family:monospace;font-weight:700">Sarı</span> — başlangıç noktası / tetikleyici &nbsp;|&nbsp;
+                    <span style="color:#7cb9f0;font-family:monospace">Mavi</span> — fonksiyon / metod çağrısı &nbsp;|&nbsp;
+                    <span style="color:#fb923c;font-family:monospace">Turuncu</span> — event &nbsp;|&nbsp;
+                    <span style="color:#c084fc;font-family:monospace">Mor</span> — veri &nbsp;|&nbsp;
+                    <span style="color:#86efac;font-family:monospace">Yeşil</span> — koşul/dal &nbsp;|&nbsp;
+                    <span style="color:#f87171;font-family:monospace">Kırmızı</span> — hata yolu
+                </c-callout>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>1 — Sunucu Boot Sekansı</h2>
+
+                <p>
+                    <code>tsx server.ts</code> (geliştirme) veya <code>node dist/server.js</code> (production)
+                    komutu çalıştırıldığında Node.js modülleri
+                    <strong>import sırasına göre</strong> eş zamanlı olarak yüklenir;
+                    ardından uygulama kurulumu yukarıdan aşağı akar.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">$ tsx server.ts</span>  <span class="ft-m">← geliştirme; production'da: node dist/server.js</span>
+│
+├─ <span class="ft-f">dotenv.config()</span>
+│    └─ <span class="ft-d">.env</span> dosyası okundu → <span class="ft-d">process.env</span> dolduruldu
+│         ├─ PORT, DATABASE_URL, JWT_SECRET
+│         └─ VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL
+│
+├─ <span class="ft-m">── Modüller import sırasıyla yüklendi ──────────────────────────</span>
+│    ├─ <span class="ft-f">core/Logger.ts</span>  → Winston singleton oluşturuldu
+│    │    ├─ Console transport: geliştirmede renkli format
+│    │    └─ File transport: <span class="ft-d">logs/app-YYYY-MM-DD.log</span> (günlük rotasyon)
+│    ├─ <span class="ft-f">middleware/requestId.ts</span>  → UUID middleware factory hazır
+│    ├─ <span class="ft-f">middleware/rateLimit.ts</span>  → <span class="ft-d">globalLimiter</span> oluşturuldu (100 istek/15 dk)
+│    ├─ <span class="ft-f">core/AppError.ts</span>  → özel hata sınıfı tanımlandı
+│    ├─ <span class="ft-f">db/connection.ts</span>  → <span class="ft-d">pg.Pool</span> oluşturuldu
+│    │    ├─ <span class="ft-d">max: 10</span> bağlantı, <span class="ft-d">idleTimeoutMillis: 30000</span>
+│    │    └─ <span class="ft-m">İlk gerçek DB bağlantısı henüz açılmadı — ilk sorguyla açılır (lazy)</span>
+│    ├─ <span class="ft-f">routes/v1/auth.ts</span>  → AuthService + UserRepository import edildi
+│    ├─ <span class="ft-f">routes/v1/attendance.ts</span>  → AttendanceService + AttendanceRepository
+│    ├─ <span class="ft-f">routes/v1/events.ts</span>  → <span class="ft-d">sseClients Map</span> oluşturuldu (SSE bağlantıları tutulur)
+│    ├─ <span class="ft-f">routes/v1/users.ts</span>  → UserService + UserRepository
+│    ├─ <span class="ft-f">routes/v1/leaves.ts</span>  → LeaveService + LeaveRepository
+│    ├─ <span class="ft-f">routes/v1/overtime.ts</span>  → OvertimeService + OvertimeRepository
+│    ├─ <span class="ft-f">routes/v1/notifications.ts</span>  → NotificationService
+│    ├─ <span class="ft-f">routes/v1/push.ts</span>  → web-push kütüphanesi + VAPID ayarları
+│    ├─ <span class="ft-f">routes/v1/holidays.ts</span>  → HolidayRepository
+│    ├─ <span class="ft-f">routes/v1/reports.ts</span>  → ExcelService
+│    ├─ <span class="ft-f">routes/v1/admin/index.ts</span>  → AdminService + AuditRepository
+│    └─ <span class="ft-f">events/setup.ts</span>  → Event dinleyicileri <strong>kayıt edildi</strong>
+│         ├─ <span class="ft-e">emitter.on('error')</span>  → hata log'lanır, sunucu çökmez
+│         ├─ <span class="ft-e">emitter.on('leave:requested')</span>  → yöneticiye bildirim gönderilir
+│         ├─ <span class="ft-e">emitter.on('leave:approved')</span>  → personele bildirim gönderilir
+│         ├─ <span class="ft-e">emitter.on('leave:rejected')</span>  → personele bildirim gönderilir
+│         ├─ <span class="ft-e">emitter.on('overtime:requested')</span>  → yöneticiye bildirim gönderilir
+│         ├─ <span class="ft-e">emitter.on('overtime:approved')</span>  → personele bildirim gönderilir
+│         └─ <span class="ft-e">emitter.on('overtime:rejected')</span>  → personele bildirim gönderilir
+│
+├─ <span class="ft-f">const app = express()</span>  → Express uygulaması oluşturuldu
+│
+├─ <span class="ft-m">── Middleware zinciri kuruldu ──────────────────────────────────</span>
+│    ├─ <span class="ft-f">app.set('trust proxy', 1)</span>  → Cloudflare / reverse proxy IP güveni
+│    ├─ <span class="ft-f">app.use(helmet({...}))</span>  → HTTP güvenlik başlıkları
+│    │    ├─ Content-Security-Policy: self + Alpine.js CDN + Cloudflare analytics
+│    │    ├─ X-Content-Type-Options: nosniff
+│    │    ├─ X-Frame-Options: DENY
+│    │    └─ Strict-Transport-Security (HSTS)
+│    ├─ <span class="ft-f">app.use(cors({...}))</span>  → CORS politikası
+│    │    ├─ <span class="ft-c">localhost:*</span>  → izinli
+│    │    ├─ <span class="ft-c">ngrok.io, trycloudflare.com</span>  → izinli
+│    │    └─ <span class="ft-c">ALLOWED_ORIGINS env</span>  → virgülle ayrılmış ek domainler → izinli
+│    ├─ <span class="ft-f">app.use(requestId)</span>  → her isteğe UUID atanır
+│    ├─ <span class="ft-f">app.use(globalLimiter)</span>  → rate limiting
+│    ├─ <span class="ft-f">app.use(cookieParser())</span>  → cookie'ler parse edilir
+│    └─ <span class="ft-f">app.use(express.json({ limit: '1mb' }))</span>  → JSON body parse
+│
+├─ <span class="ft-m">── Statik dosya sunumları ──────────────────────────────────────</span>
+│    ├─ <span class="ft-d">/public</span>  → CSS, JS bundle'lar, ikonlar, sw.js
+│    └─ <span class="ft-d">/uploads</span>  → kullanıcı avatar'ları
+│
+├─ <span class="ft-m">── API Route'ları bağlandı ─────────────────────────────────────</span>
+│    ├─ <span class="ft-d">/api/v1/auth</span>         → authRoute
+│    ├─ <span class="ft-d">/api/v1/attendance</span>   → attendanceRoute
+│    ├─ <span class="ft-d">/api/v1/events</span>       → eventsRoute (SSE akışı)
+│    ├─ <span class="ft-d">/api/v1/users</span>        → usersRoute
+│    ├─ <span class="ft-d">/api/v1/settings</span>     → settingsRoute
+│    ├─ <span class="ft-d">/api/v1/leaves</span>       → leavesRoute
+│    ├─ <span class="ft-d">/api/v1/overtime</span>     → overtimeRoute
+│    ├─ <span class="ft-d">/api/v1/notifications</span> → notificationsRoute
+│    ├─ <span class="ft-d">/api/v1/push</span>         → pushRoute
+│    ├─ <span class="ft-d">/api/v1/holidays</span>     → holidaysRoute
+│    ├─ <span class="ft-d">/api/v1/reports</span>      → reportsRoute
+│    └─ <span class="ft-d">/api/v1/admin/*</span>      → adminRoute (dashboard, audit)
+│
+├─ <span class="ft-m">── SPA Fallback'ler ────────────────────────────────────────────</span>
+│    ├─ <span class="ft-d">/admin/*</span>  → <span class="ft-d">public/admin/index.html</span>  <span class="ft-m">(Admin SPA)</span>
+│    └─ <span class="ft-d">/*</span>       → <span class="ft-d">public/index.html</span>         <span class="ft-m">(Kullanıcı SPA)</span>
+│
+├─ <span class="ft-m">── Global hata işleyici ────────────────────────────────────────</span>
+│    ├─ <span class="ft-c">AppError instance</span>  → HTTP kodu + mesaj client'a döndürülür
+│    └─ <span class="ft-c">Beklenmedik hata</span>   → 500 döner, <span class="ft-f">logger.error()</span> çağrılır
+│
+└─ <span class="ft-f">app.listen(PORT)</span>  → <span class="ft-ok">✓ Sunucu http://localhost:PORT üzerinde çalışıyor</span>
+     └─ <span class="ft-f">logger.info('Sunucu başladı')</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>2 — Kullanıcı Uygulaması Boot Sekansı</h2>
+
+                <p>
+                    Tarayıcı ilk kez (veya yeniden) <code>/home</code> gibi bir URL açtığında,
+                    sunucu SPA shell'ini (<code>index.html</code>) döndürür.
+                    Ardından <code>js/app.js</code> yüklenerek uygulamayı başlatır.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">Tarayıcı http://localhost:3000/home adresine gitti</span>
+│
+├─ <span class="ft-m">── Sunucu tarafı ───────────────────────────────────────────────</span>
+│    └─ server.ts catch-all <span class="ft-d">/*</span>  → <span class="ft-d">public/index.html</span> gönderildi
+│
+├─ <span class="ft-m">── Tarayıcı HTML parse ─────────────────────────────────────────</span>
+│    ├─ <span class="ft-d">&lt;head&gt;</span> işlendi
+│    │    ├─ <span class="ft-f">css/components.css</span> yüklendi  <span class="ft-m">(render-blocking)</span>
+│    │    ├─ <span class="ft-f">css/style.css</span> yüklendi  <span class="ft-m">(CSS değişkenleri, dark theme)</span>
+│    │    └─ <span class="ft-f">manifest.json</span>  → PWA meta bilgileri alındı
+│    └─ <span class="ft-d">&lt;body&gt;</span> işlendi
+│         ├─ <span class="ft-d">&lt;div id="header-container"&gt;</span>  boş — TopBar buraya gelecek
+│         ├─ <span class="ft-d">&lt;div id="app"&gt;</span>              boş — sayfalar buraya gelecek
+│         └─ <span class="ft-d">&lt;div id="nav-container"&gt;</span>    boş — BottomNav buraya gelecek
+│
+├─ <span class="ft-f">js/app.js</span> yüklendi &amp; çalıştı
+│    │
+│    ├─ <span class="ft-m">── Modül seviyesi (init'ten önce, senkron) ──────────────────</span>
+│    ├─ <span class="ft-f">Alpine.start()</span>  → MutationObserver ile x-data elementlerini izler
+│    ├─ <span class="ft-f">navigator.serviceWorker.register('/sw.js')</span>
+│    │    └─ <span class="ft-f">sw.js</span> install edildi (ilk ziyarette) / aktif edildi
+│    │         ├─ CSS/JS/İkon'lar: <span class="ft-d">CacheFirst</span> stratejisi
+│    │         └─ <span class="ft-d">/api/*</span>: <span class="ft-d">NetworkFirst</span> stratejisi
+│    ├─ <span class="ft-f">initOfflineBanner()</span>  → online/offline olayları dinlenmeye başladı
+│    ├─ <span class="ft-f">listenSWSync(sendOfflineItem)</span>  → SW 'sync' event'i dinleniyor
+│    ├─ <span class="ft-f">window.addEventListener('online', syncQueue)</span>
+│    │
+│    └─ <span class="ft-f">init()</span>  çağrıldı  <span class="ft-m">(async)</span>
+│         │
+│         ├─ <span class="ft-f">api.get('/api/v1/auth/me')</span>  → oturum kontrolü
+│         │    ├─ <span class="ft-c">[200 - profil alındı]</span>
+│         │    │    ├─ <span class="ft-f">state.set('user',    {id, role, company_id})</span>
+│         │    │    └─ <span class="ft-f">state.set('profile', profile)</span>
+│         │    └─ <span class="ft-c">[401 / ağ hatası]</span>  → <span class="ft-d">null</span> döndü, user state boş kaldı
+│         │
+│         ├─ <span class="ft-f">new Router(routes, app)</span>  → router oluşturuldu
+│         │    └─ <span class="ft-f">window.addEventListener('popstate', ...)</span>  → geri/ileri butonu dinleniyor
+│         │
+│         ├─ <span class="ft-f">state.watch('user', callback)</span>  → user her değiştiğinde tetiklenir
+│         │    ├─ <span class="ft-f">renderTopBar()</span>  → <span class="ft-d">#header-container</span> güncellenir
+│         │    ├─ <span class="ft-f">renderNav()</span>     → <span class="ft-d">#nav-container</span> güncellenir
+│         │    ├─ <span class="ft-c">[user var]</span>   → <span class="ft-f">eventStream.connect()</span>  SSE bağlantısı açılır
+│         │    └─ <span class="ft-c">[user yok]</span>  → <span class="ft-f">eventStream.disconnect()</span>
+│         │
+│         ├─ <span class="ft-f">state.watch('profile', renderTopBar)</span>  → avatar/isim değişiminde güncellenir
+│         │
+│         ├─ <span class="ft-f">renderTopBar()</span>  → ilk render
+│         │    ├─ <span class="ft-c">[user var]</span>   → <span class="ft-f">new TopBar(profile).mount(headerEl)</span>
+│         │    └─ <span class="ft-c">[user yok]</span>  → header boş kalır
+│         │
+│         ├─ <span class="ft-f">renderNav()</span>  → ilk render
+│         │    ├─ <span class="ft-c">[user var]</span>   → <span class="ft-f">new BottomNav(role).mount(container)</span>
+│         │    └─ <span class="ft-c">[user yok]</span>  → nav gösterilmez
+│         │
+│         ├─ <span class="ft-c">[user var]</span>  → <span class="ft-f">eventStream.connect()</span>
+│         │    └─ <span class="ft-f">new EventSource('/api/v1/events')</span>  → SSE bağlantısı açıldı
+│         │
+│         ├─ <span class="ft-f">router.navigate</span> override edildi
+│         │    └─ <span class="ft-m">orijinal navigate + currentNav.setActive(path)</span>
+│         │
+│         └─ <span class="ft-f">router._render(location.pathname)</span>  → ilk sayfa render
+│              ├─ <span class="ft-c">[user yok &amp;&amp; path !== '/login']</span>  → <span class="ft-f">navigate('/login')</span>
+│              ├─ <span class="ft-c">[user var &amp;&amp; path === '/login']</span>   → <span class="ft-f">navigate('/home')</span>
+│              └─ <span class="ft-c">[geçerli sayfa]</span>
+│                   ├─ <span class="ft-d">container.classList.add('page-enter')</span>  → CSS transition
+│                   ├─ <span class="ft-f">routes[path]()</span>  → lazy import()
+│                   │    └─ <span class="ft-d">js/chunks/home-[hash].js</span>  indirildi &amp; parse edildi
+│                   ├─ <span class="ft-f">new HomePage(container)</span>  → constructor çalıştı
+│                   └─ <span class="ft-f">await page.render()</span>  → <span class="ft-ok">✓ İlk sayfa DOM'da</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>3 — Admin Paneli Boot Sekansı</h2>
+
+                <p>
+                    Admin paneline (<code>/admin/*</code>) erişildiğinde sunucu ayrı bir SPA shell'i
+                    (<code>admin/index.html</code>) döndürür. Bu shell, kullanıcı uygulamasından
+                    bağımsız bir bundle (<code>app-admin.js</code>) yükler.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">Tarayıcı http://localhost:3000/admin adresine gitti</span>
+│
+├─ server.ts: <span class="ft-d">/admin/*</span>  → <span class="ft-d">public/admin/index.html</span> gönderildi
+│
+├─ <span class="ft-f">admin/js/app-admin.js</span> yüklendi &amp; çalıştı
+│    │
+│    ├─ <span class="ft-f">applyAppearance()</span>  → tweaks/appearance.ts
+│    │    └─ localStorage'dan tema ayarları okundu, CSS değişkenleri uygulandı
+│    │
+│    ├─ <span class="ft-f">routes nesnesi oluşturuldu</span>  (moduleRegistry'den)
+│    │    ├─ ADMIN_MODULES listesi tarandı
+│    │    │    ├─ <span class="ft-d">/admin</span>            → DashboardPage loader
+│    │    │    ├─ <span class="ft-d">/admin/movements</span>  → MovementsPage loader
+│    │    │    ├─ <span class="ft-d">/admin/approvals</span>  → ApprovalsPage loader
+│    │    │    ├─ <span class="ft-d">/admin/users</span>      → UsersPage loader
+│    │    │    ├─ <span class="ft-d">/admin/leaves</span>     → LeavesPage loader
+│    │    │    ├─ <span class="ft-d">/admin/overtime</span>   → OvertimePage loader
+│    │    │    ├─ <span class="ft-d">/admin/holidays</span>   → HolidaysPage loader
+│    │    │    ├─ <span class="ft-d">/admin/notifications</span> → NotificationsPage loader
+│    │    │    ├─ <span class="ft-d">/admin/settings</span>   → SettingsPage loader
+│    │    │    ├─ <span class="ft-d">/admin/reports</span>    → ReportsPage loader
+│    │    │    └─ <span class="ft-d">/admin/audit</span>      → AuditLogPage loader
+│    │    └─ ADMIN_EXTRA_ROUTES de eklendi
+│    │
+│    └─ <span class="ft-f">init()</span>  çağrıldı  <span class="ft-m">(async)</span>
+│         │
+│         ├─ <span class="ft-f">api.get('/api/v1/auth/me')</span>  → oturum + rol kontrolü
+│         │    ├─ <span class="ft-c">[hata / null]</span>              → <span class="ft-err">window.location.href = '/login'</span>
+│         │    └─ <span class="ft-c">[role !== 'admin']</span>        → <span class="ft-err">window.location.href = '/'</span>
+│         │
+│         ├─ <span class="ft-f">state.set('user', ...)</span>
+│         ├─ <span class="ft-f">state.set('profile', ...)</span>
+│         ├─ <span class="ft-f">eventStream.connect()</span>  → SSE bağlantısı (admin bildirimler)
+│         │
+│         ├─ <span class="ft-f">new AdminLayout(app, location.pathname)</span>
+│         │    ├─ Sidebar render edildi (modül linkleri + kullanıcı bilgisi)
+│         │    ├─ AdminTopBar render edildi
+│         │    ├─ AdminNotifPanel hazırlandı (gizli, bell ile açılır)
+│         │    └─ <span class="ft-d">layout.contentEl</span>  → sayfalar buraya mount edilecek
+│         │
+│         ├─ <span class="ft-f">new Router(routes, layout.contentEl)</span>  → router oluşturuldu
+│         │
+│         ├─ <span class="ft-f">router.navigate</span> override edildi
+│         │    └─ <span class="ft-m">orijinal navigate + layout.setActivePage(path)</span>
+│         │
+│         └─ <span class="ft-f">router._render(location.pathname)</span>  → ilk admin sayfası render
+│              └─ DashboardPage yüklendi → <span class="ft-ok">✓ Admin paneli hazır</span></pre>
+
+                <c-callout variant="tip" title="Performans notu">
+                    Her sayfa (<code>HomePage</code>, <code>LeavesPage</code>, vb.) ayrı bir
+                    esbuild chunk'ıdır. <code>router._render()</code> çağrısına kadar hiçbir sayfa kodu
+                    indirilmez. Bu sayede ilk yükleme yalnızca <code>app.js</code> boyutuna bağlıdır
+                    (~60-80 KB gzip).
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-label="Katman Mimarisi" prev-href="arch-layers.html"
+                    next-label="DOM Yapısı"       next-href="arch-dom.html">
+                </c-pagination-nav>
+            </div>
+
+            <c-toc selector=".page-inner h2"></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+</body>
+
+</html>

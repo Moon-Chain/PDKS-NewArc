@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Yapısı — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+
+        .flow-tree {
+            background: var(--c-bg-code, #111);
+            border: 1px solid var(--c-border);
+            border-left: 3px solid var(--c-primary);
+            border-radius: var(--c-radius);
+            padding: 1.25rem 1.5rem;
+            font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.79rem;
+            line-height: 1.95;
+            overflow-x: auto;
+            white-space: pre;
+            margin: var(--c-space-3) 0;
+            color: var(--c-text);
+        }
+        .ft-t   { color: #f0c040; font-weight: 700; }
+        .ft-f   { color: #7cb9f0; }
+        .ft-e   { color: #fb923c; }
+        .ft-d   { color: #c084fc; }
+        .ft-c   { color: #86efac; }
+        .ft-m   { color: #6b7280; font-style: italic; }
+        .ft-err { color: #f87171; }
+        .ft-ok  { color: #4ade80; }
+        .ft-html { color: #60a5fa; }   /* HTML element rengi */
+        .ft-attr { color: #fcd34d; }   /* attribute rengi */
+        .ft-val  { color: #86efac; }   /* değer rengi */
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="arch-dom" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Mimari>DOM Yapısı"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>DOM Yapısı</h1>
+
+                <p>
+                    Bu sayfa; kullanıcı SPA'sının (<code>index.html</code>) ve admin panelinin
+                    (<code>admin/index.html</code>) DOM ağacını, JavaScript yüklenmeden önce ve
+                    sonraki halini, sayfa geçişlerinde DOM'da neler değiştiğini ve
+                    <code>BasePage</code> yaşam döngüsünü detaylandırır.
+                </p>
+
+                <c-callout variant="info" title="Renk rehberi">
+                    <span style="color:#60a5fa;font-family:monospace">Mavi</span> — HTML elementi &nbsp;|&nbsp;
+                    <span style="color:#fcd34d;font-family:monospace">Sarı</span> — attribute &nbsp;|&nbsp;
+                    <span style="color:#86efac;font-family:monospace">Yeşil</span> — değer / koşul &nbsp;|&nbsp;
+                    <span style="color:#7cb9f0;font-family:monospace">Açık mavi</span> — fonksiyon çağrısı &nbsp;|&nbsp;
+                    <span style="color:#6b7280;font-family:monospace;font-style:italic">Gri</span> — yorum
+                </c-callout>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>1 — Statik DOM (JS yüklenmeden önce)</h2>
+
+                <p>
+                    Sunucu <code>public/index.html</code>'yi gönderdiğinde, JavaScript henüz çalışmamıştır.
+                    DOM bu noktada yalnızca iskelet yapısından oluşur; tüm dinamik bölgeler boştur.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-html">&lt;html&gt;</span>
+│
+├─ <span class="ft-html">&lt;head&gt;</span>
+│    ├─ <span class="ft-html">&lt;meta</span> <span class="ft-attr">charset</span>=<span class="ft-val">"UTF-8"</span><span class="ft-html">&gt;</span>
+│    ├─ <span class="ft-html">&lt;meta</span> <span class="ft-attr">name</span>=<span class="ft-val">"viewport"</span> <span class="ft-attr">content</span>=<span class="ft-val">"width=device-width, initial-scale=1.0"</span><span class="ft-html">&gt;</span>
+│    ├─ <span class="ft-html">&lt;link</span> <span class="ft-attr">rel</span>=<span class="ft-val">"stylesheet"</span> <span class="ft-attr">href</span>=<span class="ft-val">"css/components.css"</span><span class="ft-html">&gt;</span>  <span class="ft-m">render-blocking</span>
+│    ├─ <span class="ft-html">&lt;link</span> <span class="ft-attr">rel</span>=<span class="ft-val">"stylesheet"</span> <span class="ft-attr">href</span>=<span class="ft-val">"css/style.css"</span><span class="ft-html">&gt;</span>      <span class="ft-m">render-blocking</span>
+│    ├─ <span class="ft-html">&lt;link</span> <span class="ft-attr">rel</span>=<span class="ft-val">"manifest"</span>    <span class="ft-attr">href</span>=<span class="ft-val">"manifest.json"</span><span class="ft-html">&gt;</span>     <span class="ft-m">PWA meta</span>
+│    └─ <span class="ft-html">&lt;meta</span> <span class="ft-attr">name</span>=<span class="ft-val">"theme-color"</span><span class="ft-html">&gt;</span>
+│
+└─ <span class="ft-html">&lt;body&gt;</span>
+     │
+     ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">id</span>=<span class="ft-val">"header-container"</span><span class="ft-html">&gt;&lt;/div&gt;</span>    <span class="ft-m">← BOŞTUR; TopBar buraya gelecek</span>
+     ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">id</span>=<span class="ft-val">"app"</span><span class="ft-html">&gt;&lt;/div&gt;</span>                   <span class="ft-m">← BOŞTUR; sayfalar buraya gelecek</span>
+     ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">id</span>=<span class="ft-val">"nav-container"</span><span class="ft-html">&gt;&lt;/div&gt;</span>       <span class="ft-m">← BOŞTUR; BottomNav buraya gelecek</span>
+     └─ <span class="ft-html">&lt;script</span> <span class="ft-attr">src</span>=<span class="ft-val">"js/app.js"</span><span class="ft-html">&gt;&lt;/script&gt;</span>     <span class="ft-m">← JS yüklenince her şey canlanır</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>2 — Dinamik DOM (app.js çalıştıktan sonra)</h2>
+
+                <p>
+                    <code>init()</code> tamamlandığında DOM şu halı alır. Kullanıcı giriş yapmışsa
+                    tüm bölgeler dolu olur; giriş yapılmamışsa yalnızca <code>#app</code> içinde
+                    <code>LoginPage</code> render edilir.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-html">&lt;body&gt;</span>  <span class="ft-m">← app.js çalıştıktan sonra (kullanıcı giriş yapmış)</span>
+│
+├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">id</span>=<span class="ft-val">"header-container"</span><span class="ft-html">&gt;</span>
+│    └─ <span class="ft-html">&lt;header</span> <span class="ft-attr">class</span>=<span class="ft-val">"top-bar"</span><span class="ft-html">&gt;</span>                       <span class="ft-m">← TopBar.mount() ekledi</span>
+│         ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"top-bar__left"</span><span class="ft-html">&gt;</span>
+│         │    └─ <span class="ft-html">&lt;span</span> <span class="ft-attr">class</span>=<span class="ft-val">"top-bar__title"</span><span class="ft-html">&gt;</span>PDKS<span class="ft-html">&lt;/span&gt;</span>
+│         └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"top-bar__right"</span><span class="ft-html">&gt;</span>
+│              ├─ <span class="ft-html">&lt;button</span> <span class="ft-attr">class</span>=<span class="ft-val">"notif-btn"</span><span class="ft-html">&gt;</span>🔔<span class="ft-html">&lt;/button&gt;</span>
+│              └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"user-dropdown"</span><span class="ft-html">&gt;</span>
+│                   ├─ <span class="ft-html">&lt;img</span> <span class="ft-attr">class</span>=<span class="ft-val">"avatar"</span> <span class="ft-attr">src</span>=<span class="ft-val">"/uploads/..."</span><span class="ft-html">&gt;</span>
+│                   └─ <span class="ft-html">&lt;span&gt;</span>Kullanıcı Adı<span class="ft-html">&lt;/span&gt;</span>
+│
+├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">id</span>=<span class="ft-val">"app"</span><span class="ft-html">&gt;</span>
+│    └─ <span class="ft-m">← Router'ın render ettiği mevcut sayfa HTML'i (örn. /home)</span>
+│         <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"home-page"</span><span class="ft-html">&gt;</span>
+│              ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"status-card"</span><span class="ft-html">&gt;</span>
+│              │    ├─ <span class="ft-html">&lt;p</span> <span class="ft-attr">class</span>=<span class="ft-val">"check-in-time"</span><span class="ft-html">&gt;</span>09:00<span class="ft-html">&lt;/p&gt;</span>
+│              │    └─ <span class="ft-html">&lt;button</span> <span class="ft-attr">class</span>=<span class="ft-val">"btn-qr"</span><span class="ft-html">&gt;</span>QR Tara<span class="ft-html">&lt;/button&gt;</span>
+│              └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"quick-actions"</span><span class="ft-html">&gt;</span>...
+│
+└─ <span class="ft-html">&lt;div</span> <span class="ft-attr">id</span>=<span class="ft-val">"nav-container"</span><span class="ft-html">&gt;</span>
+     └─ <span class="ft-html">&lt;nav</span> <span class="ft-attr">class</span>=<span class="ft-val">"bottom-nav"</span><span class="ft-html">&gt;</span>                       <span class="ft-m">← BottomNav.mount() ekledi</span>
+          ├─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/home"</span>      <span class="ft-attr">class</span>=<span class="ft-val">"active"</span><span class="ft-html">&gt;</span>Ana Sayfa<span class="ft-html">&lt;/a&gt;</span>
+          ├─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/leaves"</span>    <span class="ft-html">&gt;</span>İzinler<span class="ft-html">&lt;/a&gt;</span>
+          ├─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/movements"</span> <span class="ft-html">&gt;</span>Hareketler<span class="ft-html">&lt;/a&gt;</span>
+          └─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/profile"</span>  <span class="ft-html">&gt;</span>Profil<span class="ft-html">&lt;/a&gt;</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>3 — Sayfa Geçişi (router.navigate)</h2>
+
+                <p>
+                    Kullanıcı alt menüden <strong>İzinler</strong>'e tıkladığında DOM'da neler olduğunu
+                    adım adım görebilirsiniz. <code>#app</code> dışında hiçbir şey değişmez.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">Kullanıcı BottomNav'da "/leaves" linkine tıkladı</span>
+│
+├─ <span class="ft-f">router.navigate('/leaves')</span>  çağrıldı
+│    ├─ <span class="ft-f">history.pushState(null, '', '/leaves')</span>  → URL değişti, sayfa yenilenmedi
+│    └─ <span class="ft-f">router._render('/leaves')</span>  çağrıldı
+│
+├─ <span class="ft-m">── Mevcut sayfa temizlendi ─────────────────────────────────────</span>
+│    ├─ <span class="ft-f">this.current?.destroy()</span>  <span class="ft-m">(HomePage örneği)</span>
+│    │    ├─ <span class="ft-m">BasePage.destroy():</span>
+│    │    ├─ <span class="ft-m">  _listeners dizisindeki tüm event listener'lar kaldırıldı</span>
+│    │    └─ <span class="ft-d">container.innerHTML = ''</span>  → <span class="ft-html">&lt;div id="app"&gt;</span> boşaldı
+│    │
+│    └─ <span class="ft-d">container.classList.add('page-enter')</span>  → CSS fade-in animasyonu başladı
+│         └─ <span class="ft-m">200ms sonra: classList.remove('page-enter')</span>
+│
+├─ <span class="ft-m">── Yeni sayfa chunk'ı yüklendi ─────────────────────────────────</span>
+│    ├─ <span class="ft-f">routes['/leaves']()</span>  → <span class="ft-f">import('./pages/LeavesPage.js')</span>
+│    │    ├─ <span class="ft-c">[ilk kez]</span>  → <span class="ft-d">js/chunks/leaves-[hash].js</span> ağdan indirildi
+│    │    └─ <span class="ft-c">[sonraki kez]</span>  → SW CacheFirst → önbellekten anında döndü
+│    └─ <span class="ft-d">PageClass = LeavesPage</span>  (class referansı alındı)
+│
+├─ <span class="ft-f">new LeavesPage(container)</span>  → constructor çalıştı
+│    └─ <span class="ft-d">this.container = container</span>  <span class="ft-m">(BasePage'den)</span>
+│
+├─ <span class="ft-f">await page.render()</span>  → async, API verisi bekleniyor
+│    ├─ <span class="ft-f">api.get('/api/v1/leaves')</span>  → izin listesi alındı
+│    ├─ <span class="ft-d">this.container.innerHTML = html</span>
+│    │    └─ <span class="ft-html">&lt;div id="app"&gt;</span> şimdi şunu içeriyor:
+│    │         <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"leaves-page"</span><span class="ft-html">&gt;</span>
+│    │              ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"leaves-header"</span><span class="ft-html">&gt;</span>...
+│    │              ├─ <span class="ft-html">&lt;button</span> <span class="ft-attr">id</span>=<span class="ft-val">"btn-new-leave"</span><span class="ft-html">&gt;</span>İzin Talep Et<span class="ft-html">&lt;/button&gt;</span>
+│    │              └─ <span class="ft-html">&lt;ul</span> <span class="ft-attr">class</span>=<span class="ft-val">"leave-list"</span><span class="ft-html">&gt;</span>...
+│    └─ Event listener'lar bağlandı (<span class="ft-f">BasePage.on()</span> ile)
+│         ├─ <span class="ft-d">#btn-new-leave</span>  → 'click' → modal açılır
+│         └─ <span class="ft-m">... diğer dinleyiciler</span>
+│
+├─ <span class="ft-f">currentNav.setActive('/leaves')</span>
+│    └─ <span class="ft-d">.bottom-nav a[href="/leaves"]</span>  → <span class="ft-d">class="active"</span> eklendi
+│
+└─ <span class="ft-ok">✓ LeavesPage DOM'da, önceki sayfanın hiçbir kalıntısı yok</span></pre>
+
+                <c-callout variant="warning" title="Dikkat: DOM temizliği">
+                    <code>router._render()</code> her sayfa geçişinde önce <code>this.current.destroy()</code>
+                    çağırır. Bu metod <strong>tüm event listener'ları tek tek kaldırır</strong> ve
+                    container'ı boşaltır. Sayfalara eklenen dinleyicileri mutlaka
+                    <code>BasePage.on()</code> üzerinden bağlamalısınız; aksi hâlde bellek sızıntısı oluşur.
+                </c-callout>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>4 — Admin Paneli DOM Yapısı</h2>
+
+                <p>
+                    Admin SPA'sının DOM'u kullanıcı SPA'sından farklıdır.
+                    <code>AdminLayout</code> tek bir bileşen olarak tüm chrome'u (sidebar + topbar + içerik alanı)
+                    oluşturur; router yalnızca <code>layout.contentEl</code>'e yazar.
+                </p>
+
+                <pre class="flow-tree"><span class="ft-html">&lt;html&gt;</span>  <span class="ft-m">← admin/index.html'den türeyen DOM (app-admin.js çalıştıktan sonra)</span>
+│
+└─ <span class="ft-html">&lt;body&gt;</span>
+     └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">id</span>=<span class="ft-val">"admin-app"</span><span class="ft-html">&gt;</span>                             <span class="ft-m">← AdminLayout buraya yazılır</span>
+          └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"admin-layout"</span><span class="ft-html">&gt;</span>
+               │
+               ├─ <span class="ft-html">&lt;aside</span> <span class="ft-attr">class</span>=<span class="ft-val">"admin-sidebar"</span><span class="ft-html">&gt;</span>           <span class="ft-m">← Sidebar component</span>
+               │    ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"sidebar__logo"</span><span class="ft-html">&gt;</span>PDKS<span class="ft-html">&lt;/div&gt;</span>
+               │    ├─ <span class="ft-html">&lt;nav</span> <span class="ft-attr">class</span>=<span class="ft-val">"sidebar__nav"</span><span class="ft-html">&gt;</span>
+               │    │    ├─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/admin"</span>              <span class="ft-attr">class</span>=<span class="ft-val">"active"</span><span class="ft-html">&gt;</span>Dashboard<span class="ft-html">&lt;/a&gt;</span>
+               │    │    ├─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/admin/users"</span><span class="ft-html">&gt;</span>Kullanıcılar<span class="ft-html">&lt;/a&gt;</span>
+               │    │    ├─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/admin/movements"</span><span class="ft-html">&gt;</span>Hareketler<span class="ft-html">&lt;/a&gt;</span>
+               │    │    ├─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/admin/leaves"</span><span class="ft-html">&gt;</span>İzinler<span class="ft-html">&lt;/a&gt;</span>
+               │    │    └─ <span class="ft-html">&lt;a</span> <span class="ft-attr">href</span>=<span class="ft-val">"/admin/audit"</span><span class="ft-html">&gt;</span>Denetim Günlüğü<span class="ft-html">&lt;/a&gt;</span>
+               │    └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"sidebar__user"</span><span class="ft-html">&gt;</span>Admin Adı<span class="ft-html">&lt;/div&gt;</span>
+               │
+               ├─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"admin-main"</span><span class="ft-html">&gt;</span>
+               │    ├─ <span class="ft-html">&lt;header</span> <span class="ft-attr">class</span>=<span class="ft-val">"admin-topbar"</span><span class="ft-html">&gt;</span>          <span class="ft-m">← AdminTopBar component</span>
+               │    │    ├─ <span class="ft-html">&lt;button</span> <span class="ft-attr">class</span>=<span class="ft-val">"sidebar-toggle"</span><span class="ft-html">&gt;</span>☰<span class="ft-html">&lt;/button&gt;</span>
+               │    │    └─ <span class="ft-html">&lt;button</span> <span class="ft-attr">class</span>=<span class="ft-val">"notif-bell"</span><span class="ft-html">&gt;</span>🔔<span class="ft-html">&lt;/button&gt;</span>
+               │    └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"admin-content"</span><span class="ft-html">&gt;</span>          <span class="ft-m">← layout.contentEl — BURAYA YAZILIR</span>
+               │         └─ <span class="ft-m">← Router'ın render ettiği admin sayfası</span>
+               │              <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"dashboard-page"</span><span class="ft-html">&gt;</span>...
+               │
+               └─ <span class="ft-html">&lt;div</span> <span class="ft-attr">class</span>=<span class="ft-val">"admin-notif-panel"</span> <span class="ft-attr">hidden</span><span class="ft-html">&gt;</span>    <span class="ft-m">← AdminNotifPanel (gizli)</span>
+                    └─ <span class="ft-m">Bell'e tıklanınca görünür, SSE bildirimleri buraya düşer</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>5 — BasePage Yaşam Döngüsü</h2>
+
+                <p>
+                    Tüm sayfalar <code>BasePage</code>'i miras alır. Bir sayfanın tam yaşam döngüsü şöyledir:
+                </p>
+
+                <pre class="flow-tree"><span class="ft-t">Router yeni bir sayfa render etmeye karar verdi</span>
+│
+├─ 1. <span class="ft-f">new XxxPage(container)</span>  → constructor
+│       └─ <span class="ft-d">this.container = container</span>   <span class="ft-m">(BasePage kurucusundan)</span>
+│          <span class="ft-m">Henüz DOM'a hiçbir şey yazılmadı</span>
+│
+├─ 2. <span class="ft-f">await page.render()</span>  → async, override edilmiş
+│       ├─ API'den veri çekildi
+│       ├─ <span class="ft-d">this.container.innerHTML = html</span>  → DOM güncellendi
+│       ├─ <span class="ft-f">this.on('#btn', 'click', handler)</span>  → dinleyici kaydedildi
+│       │    └─ <span class="ft-m">BasePage._listeners[] dizisine eklendi</span>
+│       └─ <span class="ft-m">Sayfa ekranda görünür</span>
+│
+├─ 3. <span class="ft-m">── Sayfa aktif ─ kullanıcı etkileşimde ──────────────────────</span>
+│       ├─ Tıklama, scroll, form submit → handler'lar çalışır
+│       └─ SSE event → EventBus üzerinden sayfa güncellenir
+│
+└─ 4. <span class="ft-f">page.destroy()</span>  → router yeni sayfaya geçmeden önce çağırır
+        ├─ <span class="ft-d">_listeners</span> dizisindeki her entry için:
+        │    └─ <span class="ft-f">el.removeEventListener(event, handler)</span>
+        ├─ <span class="ft-d">_listeners = []</span>  → dizi temizlendi
+        └─ <span class="ft-d">container.innerHTML = ''</span>  → DOM temizlendi
+             <span class="ft-m">Bellek sızıntısı yok — garbage collector devreye girer</span></pre>
+
+                <c-callout variant="tip" title="Sayfa dışı bileşenler">
+                    <strong>TopBar</strong> ve <strong>BottomNav</strong>, <code>BasePage</code>'den değil
+                    <code>BaseComponent</code>'ten türer ve <code>router._render()</code> tarafından asla
+                    yeniden oluşturulmaz. Yalnızca <code>state.watch('user', ...)</code> tetiklendiğinde
+                    — yani oturum açılıp kapandığında — yeniden mount edilirler.
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-label="Boot Sekansı"      prev-href="arch-boot.html"
+                    next-label="Dosya Çalışma Sırası" next-href="arch-files.html">
+                </c-pagination-nav>
+            </div>
+
+            <c-toc selector=".page-inner h2"></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+</body>
+
+</html>

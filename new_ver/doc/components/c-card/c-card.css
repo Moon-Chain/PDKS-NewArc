@@ -1,0 +1,100 @@
+/* c-card: başlık / içerik / footer alanlı kart */
+
+.c-card {
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    background-color: var(--c-bg-elevated);
+    margin: var(--c-space-3) 0;
+    overflow: hidden;
+}
+
+.c-card__header {
+    padding: var(--c-space-3);
+    background-color: var(--c-bg-subtle);
+    border-bottom: 1px solid var(--c-border);
+    font-weight: 600;
+}
+
+.c-card__body {
+    padding: var(--c-space-3);
+}
+
+.c-card__body>*:last-child {
+    margin-bottom: 0;
+}
+
+.c-card__footer {
+    padding: var(--c-space-3);
+    background-color: var(--c-bg-subtle);
+    border-top: 1px solid var(--c-border);
+}
+
+/* ── Index sayfası bileşen kartları ── */
+
+.c-index-card .c-card {
+    position: relative;
+    margin: 0;
+    border-radius: 0;
+    border-left: 3px solid transparent;
+    transition: none;
+}
+
+.c-index-card .c-card:hover {
+    border-left-color: var(--c-primary);
+    background-color: var(--c-bg-subtle);
+}
+
+/* Başlık: monospace, belirgin */
+.c-index-card .c-card__header {
+    background: none;
+    border-bottom: none;
+    padding-bottom: var(--c-space-1);
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--c-text);
+}
+
+.c-index-card .c-card__header::before {
+    content: '>';
+    margin-right: 0.4em;
+    opacity: 0.4;
+    font-weight: 400;
+}
+
+/* Açıklama: küçük, soluk */
+.c-index-card .c-card__body {
+    padding-top: 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--c-text-muted);
+}
+
+/* Footer: üst çizgi, link */
+.c-index-card .c-card__footer {
+    background: none;
+    border-top: 1px solid var(--c-border);
+    padding-top: var(--c-space-2);
+    padding-bottom: var(--c-space-2);
+}
+
+.c-index-card .c-card__footer a {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--c-text-muted) !important;
+}
+
+.c-index-card .c-card:hover .c-card__footer a {
+    color: var(--c-primary) !important;
+    text-decoration: none;
+}
+
+/* Stretched link: tüm kartı tıklanabilir yapar */
+.c-index-card .c-card__footer a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}

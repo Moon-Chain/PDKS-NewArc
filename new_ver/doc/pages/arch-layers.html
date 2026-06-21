@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katman Mimarisi — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-blueprint/c-blueprint.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+        .c-blueprint { min-height: 700px !important; }
+        .legend { display: flex; flex-wrap: wrap; gap: var(--c-space-3); margin: var(--c-space-3) 0; }
+        .legend-item { display: flex; align-items: center; gap: var(--c-space-2); font-size: 0.875rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="arch-layers" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Mimari>Katman Mimarisi"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Katman Mimarisi</h1>
+
+                <p>
+                    PDKS,
+                    <c-tooltip text="Katmanlı Mimari — her katmanın tek bir sorumluluğu olduğu mimari. Route sadece isteği alır, Service sadece iş mantığını çalıştırır, Repository sadece veritabanıyla konuşur. Katmanlar birbirinin sınırını geçmez." position="top"><span class="term">katmanlı mimari</span></c-tooltip>
+                    (Layered Architecture) ile tasarlanmıştır. Her katman belirli bir sorumluluğu üstlenir;
+                    bir katmanın görevi bittikten sonra işi bir üst/alt katmana devredilir.
+                </p>
+                <p>
+                    Bir HTTP isteği soldan sağa akar: <strong>Tarayıcı → server.ts → Middleware → Route → Service → Repository → PostgreSQL</strong>.
+                    Olaylar (izin onayı, bildirim) ise Service katmanından ayrı bir
+                    <c-tooltip text="EventEmitter — Node.js'in yerleşik olay yayın/dinleme sistemi. Service 'leave:approved' olayını yayınlar; dinleyiciler (listeners) SSE, Push ve DB bildirimi işlemlerini ayrı ayrı yapar." position="top"><span class="term">EventEmitter</span></c-tooltip>
+                    kanalıyla alt sistemlere (SSE, Push, Bildirim DB) dağıtılır.
+                </p>
+
+                <c-callout variant="info" title="Diyagramı nasıl okuyorum?">
+                    <strong>Soldan sağa:</strong> HTTP isteğinin izlediği yol.<br>
+                    <strong>Aşağıya:</strong> EventEmitter üzerinden giden gerçek zamanlı bildirim akışı.<br>
+                    Kartları sürükleyebilir, fare tekerleğiyle zum yapabilirsiniz.
+                    <strong>↺</strong> başlangıç konumuna sıfırlar, <strong>⛶</strong> tam ekrana alır.
+                </c-callout>
+
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#4488dd"></div> HTTP İstek / Cookie akışı</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#e83e8c"></div> Middleware zinciri</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Route'a geçiş / SSE</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div> Service çağrısı</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div> Repository çağrısı</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#e6a800"></div> SQL / DB bağlantısı</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#9ca3af"></div> Event akışı</div>
+                </div>
+
+                <c-blueprint>
+                    <script type="application/json">
+                    {
+                        "nodes": [
+                            {
+                                "id": "client",
+                                "title": "Tarayıcı (İstemci)",
+                                "x": -750, "y": 160,
+                                "color": "#1456c8",
+                                "ports": [
+                                    { "id": "req_out",   "label": "HTTP İsteği",        "dir": "out", "type": "fetch() / form submit" },
+                                    { "id": "cookie_out","label": "pdks_token (cookie)","dir": "out", "type": "httpOnly; Secure; SameSite" },
+                                    { "id": "sse_in",    "label": "SSE Akışı Alır",     "dir": "in",  "type": "EventSource('/api/v1/events')" }
+                                ]
+                            },
+                            {
+                                "id": "server",
+                                "title": "server.ts",
+                                "x": -450, "y": 160,
+                                "color": "#0c4a6e",
+                                "ports": [
+                                    { "id": "http_in",   "label": "HTTP Dinle",         "dir": "in",  "type": "express().listen(PORT)" },
+                                    { "id": "cookie_in", "label": "Cookie Oku",          "dir": "in",  "type": "cookie-parser middleware" },
+                                    { "id": "mw_out",    "label": "Middleware Zincirine","dir": "out", "type": "app.use(requestId, rateLimit...)" }
+                                ]
+                            },
+                            {
+                                "id": "middleware",
+                                "title": "Middleware Zinciri",
+                                "x": -120, "y": 40,
+                                "color": "#831843",
+                                "ports": [
+                                    { "id": "in",         "label": "İstek Giriş",          "dir": "in",   "type": "req, res, next" },
+                                    { "id": "requestId",  "label": "requestId",             "dir": "none", "type": "Her isteğe UUID ekle, log tag" },
+                                    { "id": "rateLimit",  "label": "rateLimit",             "dir": "none", "type": "IP bazlı istek limiti (express-rate-limit)" },
+                                    { "id": "auth",       "label": "auth",                  "dir": "none", "type": "Cookie → JWT doğrula → req.user set" },
+                                    { "id": "roles",      "label": "roles(perm)",           "dir": "none", "type": "req.user.role yetkiyi taşıyor mu?" },
+                                    { "id": "validate",   "label": "validate(schema)",      "dir": "none", "type": "Body / query parametrelerini doğrula" },
+                                    { "id": "route_out",  "label": "Route Handler'a Geç",  "dir": "out",  "type": "next() — zincir tamam" }
+                                ]
+                            },
+                            {
+                                "id": "routes",
+                                "title": "Route Katmanı  /api/v1/*",
+                                "x": 240, "y": 160,
+                                "color": "#14532d",
+                                "ports": [
+                                    { "id": "in",       "label": "Gelen İstek",       "dir": "in",   "type": "req, res" },
+                                    { "id": "auth_r",   "label": "auth.ts",           "dir": "none", "type": "/login, /logout, /me, /password" },
+                                    { "id": "attend_r", "label": "attendance.ts",     "dir": "none", "type": "POST /, GET /today, /status, /qr..." },
+                                    { "id": "users_r",  "label": "users.ts",          "dir": "none", "type": "GET /, POST /, PATCH /:id, /avatar" },
+                                    { "id": "leaves_r", "label": "leaves.ts",         "dir": "none", "type": "POST /, /approve, /reject, /cancel" },
+                                    { "id": "ot_r",     "label": "overtime.ts",       "dir": "none", "type": "POST /, /approve, /reject, /cancel" },
+                                    { "id": "admin_r",  "label": "admin/*",           "dir": "none", "type": "/dashboard, /audit" },
+                                    { "id": "svc_out",  "label": "Service Çağır",    "dir": "out",  "type": "await attendanceService.checkIn()" }
+                                ]
+                            },
+                            {
+                                "id": "service",
+                                "title": "Service Katmanı",
+                                "x": 600, "y": 80,
+                                "color": "#b85a00",
+                                "ports": [
+                                    { "id": "in",          "label": "İş Mantığı Giriş",    "dir": "in",   "type": "Route'tan bağımsız kurallar" },
+                                    { "id": "attend_s",    "label": "AttendanceService",    "dir": "none", "type": "QR doğrula, 30sn cooldown kontrol" },
+                                    { "id": "leave_s",     "label": "LeaveService",         "dir": "none", "type": "Tatil çıkar, bakiye hesapla" },
+                                    { "id": "notif_s",     "label": "NotificationService",  "dir": "none", "type": "Bildirim şablonu oluştur" },
+                                    { "id": "repo_out",    "label": "Repository Çağır",    "dir": "out",  "type": "await repo.findById(id)" },
+                                    { "id": "event_out",   "label": "Olay Yayınla",        "dir": "out",  "type": "emitter.emit('leave:approved', data)" }
+                                ]
+                            },
+                            {
+                                "id": "repository",
+                                "title": "Repository Katmanı",
+                                "x": 940, "y": 80,
+                                "color": "#6b21a8",
+                                "ports": [
+                                    { "id": "in",          "label": "Veri Erişim Giriş",   "dir": "in",   "type": "Saf SQL katmanı — iş mantığı yok" },
+                                    { "id": "base_repo",   "label": "BaseRepository",       "dir": "none", "type": "findById, create, update, delete" },
+                                    { "id": "attend_repo", "label": "AttendanceRepository", "dir": "none", "type": "INSERT attendance_logs; getToday()" },
+                                    { "id": "user_repo",   "label": "UserRepository",       "dir": "none", "type": "SELECT users WHERE company_id=$1" },
+                                    { "id": "audit_repo",  "label": "AuditRepository",      "dir": "none", "type": "INSERT audit_log (actor, action, old/new)" },
+                                    { "id": "sql_out",     "label": "SQL Gönder",           "dir": "out",  "type": "pool.query(sql, [params])" }
+                                ]
+                            },
+                            {
+                                "id": "db",
+                                "title": "PostgreSQL",
+                                "x": 1260, "y": 160,
+                                "color": "#9a7200",
+                                "ports": [
+                                    { "id": "sql_in",  "label": "SQL Sorgusu",  "dir": "in",   "type": "pg.Pool — bağlantı havuzu" },
+                                    { "id": "tables",  "label": "11 Tablo",     "dir": "none", "type": "companies, users, attendance, leaves..." },
+                                    { "id": "fk",      "label": "FK / Trigger", "dir": "none", "type": "Bütünlük kuralları, CASCADE" },
+                                    { "id": "result",  "label": "Sonuç Dön",   "dir": "out",  "type": "QueryResult<Row[]>" }
+                                ]
+                            },
+                            {
+                                "id": "emitter",
+                                "title": "EventEmitter",
+                                "x": 600, "y": 440,
+                                "color": "#1f2937",
+                                "ports": [
+                                    { "id": "in",        "label": "Olay Al",          "dir": "in",  "type": "leave:approved|rejected, overtime:..., attendance:..." },
+                                    { "id": "sse_out",   "label": "SSE Manager'a",    "dir": "out", "type": "Anlık devam/bildirim yayını" },
+                                    { "id": "push_out",  "label": "Web Push'a",       "dir": "out", "type": "VAPID ile tarayıcı bildirimi" },
+                                    { "id": "db_out",    "label": "Notifications DB", "dir": "out", "type": "INSERT notifications tablosuna" }
+                                ]
+                            },
+                            {
+                                "id": "sse_mgr",
+                                "title": "SSE Manager",
+                                "x": 940, "y": 360,
+                                "color": "#146c3a",
+                                "ports": [
+                                    { "id": "in",   "label": "Olay Alır",          "dir": "in",  "type": "sseClients Map — bağlı istemciler" },
+                                    { "id": "out",  "label": "Tarayıcıya Gönder", "dir": "out", "type": "res.write('event: attendance\\ndata: ...')" }
+                                ]
+                            },
+                            {
+                                "id": "web_push",
+                                "title": "Web Push (VAPID)",
+                                "x": 940, "y": 510,
+                                "color": "#7f1d1d",
+                                "ports": [
+                                    { "id": "in",  "label": "Push Alır",         "dir": "in",  "type": "subscription + payload + VAPID key" },
+                                    { "id": "out", "label": "FCM / autopush",    "dir": "out", "type": "Push servisine imzalı bildirim" }
+                                ]
+                            }
+                        ],
+                        "connections": [
+                            { "from": "client.req_out",    "to": "server.http_in",    "color": "#4488dd" },
+                            { "from": "client.cookie_out", "to": "server.cookie_in",  "color": "#e6a800" },
+                            { "from": "server.mw_out",     "to": "middleware.in",     "color": "#e83e8c" },
+                            { "from": "middleware.route_out","to": "routes.in",       "color": "#22c55e" },
+                            { "from": "routes.svc_out",    "to": "service.in",        "color": "#fb923c" },
+                            { "from": "service.repo_out",  "to": "repository.in",     "color": "#a855f7" },
+                            { "from": "repository.sql_out","to": "db.sql_in",         "color": "#e6a800" },
+                            { "from": "service.event_out", "to": "emitter.in",        "color": "#9ca3af" },
+                            { "from": "emitter.sse_out",   "to": "sse_mgr.in",        "color": "#22c55e" },
+                            { "from": "emitter.push_out",  "to": "web_push.in",       "color": "#f87171" },
+                            { "from": "sse_mgr.out",       "to": "client.sse_in",     "color": "#4488dd" }
+                        ]
+                    }
+                    </script>
+                </c-blueprint>
+
+                <h2>Katman Sorumlulukları</h2>
+                <table>
+                    <thead><tr><th>Katman</th><th>Dosya/Klasör</th><th>Sorumluluğu</th><th>Ne Yapamaz?</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Route</strong></td>
+                            <td><code>routes/v1/</code></td>
+                            <td>HTTP isteği al, doğrula, servise ilet, yanıtı döndür.</td>
+                            <td>Veritabanına doğrudan bağlanamaz.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Service</strong></td>
+                            <td><code>services/</code></td>
+                            <td>İş mantığını çalıştır (bakiye hesapla, QR doğrula, olay yayınla).</td>
+                            <td>HTTP req/res nesnelerini göremez.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Repository</strong></td>
+                            <td><code>repositories/</code></td>
+                            <td>SQL sorguları çalıştır, sonuçları döndür.</td>
+                            <td>İş mantığı taşıyamaz; sadece veri al/ver.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Middleware</strong></td>
+                            <td><code>middleware/</code></td>
+                            <td>Her istekte çalış; JWT doğrula, rol kontrol, body doğrula.</td>
+                            <td>İş mantığı kararı veremez.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>EventEmitter</strong></td>
+                            <td><code>events/</code></td>
+                            <td>Sistem olaylarını yayınla ve dinle; SSE + Push + DB bildirimini tetikle.</td>
+                            <td>Route veya HTTP akışını bilemez.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <c-pagination-nav
+                    next-href="arch-dom.html" next-label="DOM Yapısı">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-blueprint/c-blueprint.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,350 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şema Diyagramı — PDKS Docs</title>
+
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-blueprint/c-blueprint.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        /* Blueprint'i bu sayfada daha uzun yapıyoruz — 11 tablo için yeterli alan */
+        .c-blueprint { min-height: 860px !important; }
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="database" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Veritabanı>Şema Diyagramı"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Veritabanı Şema Diyagramı</h1>
+                <p>
+                    PDKS,
+                    <c-tooltip text="PostgreSQL — güçlü açık kaynaklı ilişkisel veritabanı. UUID birincil anahtarlar, JSONB alanlar, triggerlar ve karmaşık FK ilişkileri destekler." position="top"><span class="term">PostgreSQL</span></c-tooltip>
+                    üzerinde 11 tablo barındırır. Aşağıdaki interaktif diyagramda tablolar arasındaki
+                    <c-tooltip text="FK (Foreign Key) — yabancı anahtar. Bir tablodaki değerin başka bir tablonun PK'sına referans vermesi. Veri bütünlüğünü sağlar; geçersiz referans eklemeyi engeller." position="top"><span class="term">yabancı anahtar (FK)</span></c-tooltip>
+                    ilişkileri bezier eğrilerle gösterilir.
+                    <c-tooltip text="PK (Primary Key) — birincil anahtar. Tablodaki her satırı eşsiz olarak tanımlayan alan. PDKS'te genellikle UUID formatındadır." position="top"><span class="term">PK</span></c-tooltip>
+                    alanları <strong>sağ</strong> (out),
+                    <c-tooltip text="FK (Foreign Key) — başka bir tabloya referans veren alan. Örn. attendance.user_id → users.id bağlantısı." position="top"><span class="term">FK</span></c-tooltip>
+                    alanları <strong>sol</strong> (in) port olarak gösterilir.
+                </p>
+
+                <c-callout variant="info" title="Etkileşim">
+                    Kartları sürükleyebilirsin — bağlantı eğrileri anlık güncellenir.
+                    Boş alana tıklayıp sürükleyerek canvas'ı kaydır,
+                    fare tekerleği ile zum yap. Sağ alt köşedeki <strong>↺</strong> butonu
+                    tüm kartları başlangıç konumuna sıfırlar, <strong>⛶</strong> tam ekrana alır.
+                </c-callout>
+
+                <h2>Diyagram</h2>
+
+                <c-blueprint>
+                    <script type="application/json">
+                    {
+                        "nodes": [
+
+                            {
+                                "id": "companies",
+                                "title": "companies",
+                                "x": -217, "y": 243,
+                                "color": "#9a7200",
+                                "ports": [
+                                    { "id": "id",        "label": "id",        "dir": "out",  "type": "UUID PK",     "color": "#e6a800" },
+                                    { "id": "name",      "label": "name",      "dir": "none", "type": "VARCHAR(200)" },
+                                    { "id": "slug",      "label": "slug",      "dir": "none", "type": "VARCHAR(100)" },
+                                    { "id": "plan",      "label": "plan",      "dir": "none", "type": "VARCHAR(20)"  },
+                                    { "id": "max_users", "label": "max_users", "dir": "none", "type": "INT"          },
+                                    { "id": "is_active", "label": "is_active", "dir": "none", "type": "BOOLEAN"      }
+                                ]
+                            },
+
+                            {
+                                "id": "settings",
+                                "title": "settings",
+                                "x": 430, "y": -100,
+                                "color": "#0c4a6e",
+                                "ports": [
+                                    { "id": "company_id",               "label": "company_id (PK/FK)",       "dir": "in",   "type": "UUID",         "color": "#e6a800" },
+                                    { "id": "office_ip",                "label": "office_ip",                "dir": "none", "type": "VARCHAR(50)"   },
+                                    { "id": "qr_secret",                "label": "qr_secret",                "dir": "none", "type": "VARCHAR(100)"  },
+                                    { "id": "company_name",             "label": "company_name",             "dir": "none", "type": "VARCHAR(100)"  },
+                                    { "id": "work_days_per_week",       "label": "work_days_per_week",       "dir": "none", "type": "INT"           },
+                                    { "id": "shift_start",              "label": "shift_start",              "dir": "none", "type": "TIME"          },
+                                    { "id": "shift_end",                "label": "shift_end",                "dir": "none", "type": "TIME"          }
+                                ]
+                            },
+
+                            {
+                                "id": "users",
+                                "title": "users",
+                                "x": 458, "y": 230,
+                                "color": "#1456c8",
+                                "ports": [
+                                    { "id": "company_id",  "label": "company_id",  "dir": "in",   "type": "UUID",         "color": "#e6a800" },
+                                    { "id": "manager_id",  "label": "manager_id",  "dir": "in",   "type": "UUID (self)",   "color": "#4488dd" },
+                                    { "id": "id",          "label": "id",          "dir": "out",  "type": "UUID PK",       "color": "#4488dd" },
+                                    { "id": "personnel_id","label": "personnel_id","dir": "none", "type": "VARCHAR(50)"   },
+                                    { "id": "name",        "label": "name",        "dir": "none", "type": "VARCHAR(100)"  },
+                                    { "id": "role",        "label": "role",        "dir": "none", "type": "VARCHAR(20)"   },
+                                    { "id": "leave_balance","label": "leave_balance","dir": "none","type": "INT"           },
+                                    { "id": "is_deleted",  "label": "is_deleted",  "dir": "none", "type": "BOOLEAN"       }
+                                ]
+                            },
+
+                            {
+                                "id": "break_rules",
+                                "title": "break_rules",
+                                "x": 300, "y": 570,
+                                "color": "#831843",
+                                "ports": [
+                                    { "id": "company_id",         "label": "company_id",        "dir": "in",   "type": "UUID",          "color": "#e6a800" },
+                                    { "id": "id",                 "label": "id",                "dir": "out",  "type": "SERIAL PK",     "color": "#e83e8c" },
+                                    { "id": "threshold_hours",    "label": "threshold_hours",   "dir": "none", "type": "DECIMAL(3,1)"   },
+                                    { "id": "deduction_minutes",  "label": "deduction_minutes", "dir": "none", "type": "INT"            }
+                                ]
+                            },
+
+                            {
+                                "id": "holidays",
+                                "title": "holidays",
+                                "x": 130, "y": 750,
+                                "color": "#14532d",
+                                "ports": [
+                                    { "id": "company_id", "label": "company_id", "dir": "in",   "type": "UUID",        "color": "#e6a800" },
+                                    { "id": "id",         "label": "id",         "dir": "out",  "type": "SERIAL PK",   "color": "#22c55e" },
+                                    { "id": "year",       "label": "year",       "dir": "none", "type": "INT"          },
+                                    { "id": "date",       "label": "date",       "dir": "none", "type": "DATE"         },
+                                    { "id": "name",       "label": "name",       "dir": "none", "type": "VARCHAR(100)" },
+                                    { "id": "is_half_day","label": "is_half_day","dir": "none", "type": "BOOLEAN"      }
+                                ]
+                            },
+
+                            {
+                                "id": "attendance",
+                                "title": "attendance",
+                                "x": 823, "y": -188,
+                                "color": "#146c3a",
+                                "ports": [
+                                    { "id": "company_id",    "label": "company_id",    "dir": "in",   "type": "UUID",        "color": "#e6a800" },
+                                    { "id": "user_id",       "label": "user_id",       "dir": "in",   "type": "UUID",        "color": "#4488dd" },
+                                    { "id": "id",            "label": "id",            "dir": "out",  "type": "UUID PK",     "color": "#44cc88" },
+                                    { "id": "type",          "label": "type",          "dir": "none", "type": "in | out"     },
+                                    { "id": "timestamp",     "label": "timestamp",     "dir": "none", "type": "TIMESTAMPTZ"  },
+                                    { "id": "is_remote",     "label": "is_remote",     "dir": "none", "type": "BOOLEAN"      },
+                                    { "id": "manual_entry",  "label": "manual_entry",  "dir": "none", "type": "BOOLEAN"      },
+                                    { "id": "is_deleted",    "label": "is_deleted",    "dir": "none", "type": "BOOLEAN"      }
+                                ]
+                            },
+
+                            {
+                                "id": "notifications",
+                                "title": "notifications",
+                                "x": 1212, "y": 112,
+                                "color": "#6b21a8",
+                                "ports": [
+                                    { "id": "company_id", "label": "company_id", "dir": "in",   "type": "UUID",        "color": "#e6a800" },
+                                    { "id": "user_id",    "label": "user_id",    "dir": "in",   "type": "UUID",        "color": "#4488dd" },
+                                    { "id": "id",         "label": "id",         "dir": "out",  "type": "UUID PK",     "color": "#a855f7" },
+                                    { "id": "title",      "label": "title",      "dir": "none", "type": "VARCHAR(200)" },
+                                    { "id": "type",       "label": "type",       "dir": "none", "type": "VARCHAR(10)"  },
+                                    { "id": "is_read",    "label": "is_read",    "dir": "none", "type": "BOOLEAN"      },
+                                    { "id": "link",       "label": "link",       "dir": "none", "type": "VARCHAR(100)" }
+                                ]
+                            },
+
+                            {
+                                "id": "leave_requests",
+                                "title": "leave_requests",
+                                "x": 788, "y": 545,
+                                "color": "#b85a00",
+                                "ports": [
+                                    { "id": "company_id", "label": "company_id", "dir": "in",   "type": "UUID",        "color": "#e6a800" },
+                                    { "id": "user_id",    "label": "user_id",    "dir": "in",   "type": "UUID",        "color": "#4488dd" },
+                                    { "id": "manager_id", "label": "manager_id", "dir": "in",   "type": "UUID",        "color": "#4488dd" },
+                                    { "id": "id",         "label": "id",         "dir": "out",  "type": "UUID PK",     "color": "#fb923c" },
+                                    { "id": "start_date", "label": "start_date", "dir": "none", "type": "DATE"         },
+                                    { "id": "end_date",   "label": "end_date",   "dir": "none", "type": "DATE"         },
+                                    { "id": "days",       "label": "days",       "dir": "none", "type": "INT"          },
+                                    { "id": "type",       "label": "type",       "dir": "none", "type": "VARCHAR(10)"  },
+                                    { "id": "status",     "label": "status",     "dir": "none", "type": "VARCHAR(10)"  }
+                                ]
+                            },
+
+                            {
+                                "id": "overtime_requests",
+                                "title": "overtime_requests",
+                                "x": 1260, "y": -135,
+                                "color": "#7f1d1d",
+                                "ports": [
+                                    { "id": "company_id", "label": "company_id", "dir": "in",   "type": "UUID",         "color": "#e6a800" },
+                                    { "id": "user_id",    "label": "user_id",    "dir": "in",   "type": "UUID",         "color": "#4488dd" },
+                                    { "id": "manager_id", "label": "manager_id", "dir": "in",   "type": "UUID",         "color": "#4488dd" },
+                                    { "id": "id",         "label": "id",         "dir": "out",  "type": "UUID PK",      "color": "#f87171" },
+                                    { "id": "date",       "label": "date",       "dir": "none", "type": "DATE"          },
+                                    { "id": "hours",      "label": "hours",      "dir": "none", "type": "DECIMAL(4,1)"  },
+                                    { "id": "status",     "label": "status",     "dir": "none", "type": "VARCHAR(10)"   }
+                                ]
+                            },
+
+                            {
+                                "id": "audit_log",
+                                "title": "audit_log",
+                                "x": 1150, "y": 410,
+                                "color": "#1f2937",
+                                "ports": [
+                                    { "id": "company_id",   "label": "company_id",   "dir": "in",   "type": "UUID",        "color": "#e6a800" },
+                                    { "id": "actor_id",     "label": "actor_id",     "dir": "in",   "type": "UUID",        "color": "#4488dd" },
+                                    { "id": "id",           "label": "id",           "dir": "out",  "type": "UUID PK",     "color": "#9ca3af" },
+                                    { "id": "action",       "label": "action",       "dir": "none", "type": "VARCHAR(50)"  },
+                                    { "id": "target_table", "label": "target_table", "dir": "none", "type": "VARCHAR(50)"  },
+                                    { "id": "old_value",    "label": "old_value",    "dir": "none", "type": "JSONB"        },
+                                    { "id": "new_value",    "label": "new_value",    "dir": "none", "type": "JSONB"        },
+                                    { "id": "created_at",   "label": "created_at",   "dir": "none", "type": "TIMESTAMPTZ"  }
+                                ]
+                            },
+
+                            {
+                                "id": "token_blacklist",
+                                "title": "token_blacklist",
+                                "x": -210, "y": 540,
+                                "color": "#374151",
+                                "ports": [
+                                    { "id": "jti",        "label": "jti",        "dir": "none", "type": "VARCHAR(36) PK" },
+                                    { "id": "expires_at", "label": "expires_at", "dir": "none", "type": "TIMESTAMPTZ"    }
+                                ]
+                            }
+
+                        ],
+
+                        "connections": [
+                            { "from": "companies.id", "to": "settings.company_id",          "color": "#e6a800" },
+                            { "from": "companies.id", "to": "users.company_id",             "color": "#e6a800" },
+                            { "from": "companies.id", "to": "break_rules.company_id",       "color": "#e6a800" },
+                            { "from": "companies.id", "to": "holidays.company_id",          "color": "#e6a800" },
+                            { "from": "companies.id", "to": "attendance.company_id",        "color": "#e6a800" },
+                            { "from": "companies.id", "to": "notifications.company_id",     "color": "#e6a800" },
+                            { "from": "companies.id", "to": "leave_requests.company_id",   "color": "#e6a800" },
+                            { "from": "companies.id", "to": "overtime_requests.company_id","color": "#e6a800" },
+                            { "from": "companies.id", "to": "audit_log.company_id",        "color": "#e6a800" },
+
+                            { "from": "users.id", "to": "users.manager_id",                "color": "#4488dd" },
+                            { "from": "users.id", "to": "attendance.user_id",              "color": "#4488dd" },
+                            { "from": "users.id", "to": "notifications.user_id",           "color": "#4488dd" },
+                            { "from": "users.id", "to": "leave_requests.user_id",          "color": "#4488dd" },
+                            { "from": "users.id", "to": "leave_requests.manager_id",       "color": "#4488dd" },
+                            { "from": "users.id", "to": "overtime_requests.user_id",       "color": "#4488dd" },
+                            { "from": "users.id", "to": "overtime_requests.manager_id",    "color": "#4488dd" },
+                            { "from": "users.id", "to": "audit_log.actor_id",              "color": "#4488dd" }
+                        ]
+                    }
+                    </script>
+                </c-blueprint>
+
+                <h2>Tablolar ve İlişkiler</h2>
+
+                <h3>Renk Kodu</h3>
+                <table>
+                    <thead><tr><th>Renk</th><th>Bağlantı türü</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#e6a800;vertical-align:middle"></span> Altın</td>
+                            <td><code>companies.id</code> → tüm tablolar (<code>company_id FK</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#4488dd;vertical-align:middle"></span> Mavi</td>
+                            <td><code>users.id</code> → ilgili tablolar (<code>user_id / manager_id / actor_id FK</code>)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Tablo Özeti</h3>
+                <table>
+                    <thead><tr><th>Tablo</th><th>PK</th><th>FK'lar</th><th>Özellik</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>companies</code></td><td>id UUID</td><td>—</td><td>SaaS kiracı kök tablosu</td></tr>
+                        <tr><td><code>users</code></td><td>id UUID</td><td>company_id, manager_id (self)</td><td>4 rol, soft-delete, push sub.</td></tr>
+                        <tr><td><code>attendance</code></td><td>id UUID</td><td>company_id, user_id</td><td>QR/remote/offline, soft-delete</td></tr>
+                        <tr><td><code>leave_requests</code></td><td>id UUID</td><td>company_id, user_id, manager_id</td><td>3 tür, bakiye düşümü onayda</td></tr>
+                        <tr><td><code>overtime_requests</code></td><td>id UUID</td><td>company_id, user_id, manager_id</td><td>DECIMAL saat, soft-delete</td></tr>
+                        <tr><td><code>notifications</code></td><td>id UUID</td><td>company_id, user_id</td><td>7 gün saklama, 4 tür</td></tr>
+                        <tr><td><code>settings</code></td><td>company_id UUID</td><td>company_id (PK=FK)</td><td>1:1 ile companies, QR secret</td></tr>
+                        <tr><td><code>break_rules</code></td><td>id SERIAL</td><td>company_id</td><td>Eşik saati → mola kesintisi</td></tr>
+                        <tr><td><code>holidays</code></td><td>id SERIAL</td><td>company_id (NULL=global)</td><td>Türkiye tatilleri seed</td></tr>
+                        <tr><td><code>audit_log</code></td><td>id UUID</td><td>company_id, actor_id</td><td>old/new JSONB, IP kaydı</td></tr>
+                        <tr><td><code>token_blacklist</code></td><td>jti VARCHAR</td><td>—</td><td>Logout token iptali, Redis'siz</td></tr>
+                    </tbody>
+                </table>
+
+                <c-callout variant="warning" title="Self-Referential FK">
+                    <code>users.manager_id → users.id</code> bağlantısı aynı kart üzerinde döngü oluşturur.
+                    Bu ilişki kullanıcının bağlı yöneticisini gösterir; <code>NULL</code> olabilir (en üst yöneticiler için).
+                </c-callout>
+
+                <c-callout variant="secondary" title="Soft Delete Tutarsızlığı Yok">
+                    <code>attendance</code>, <code>leave_requests</code>, <code>overtime_requests</code>,
+                    <code>notifications</code> ve <code>users</code> tablolarında <code>is_deleted</code>
+                    + <code>deleted_at</code> + <code>deleted_by</code> alanları bulunur.
+                    Tüm sorgular <code>WHERE is_deleted = FALSE</code> filtresiyle çalışır.
+                </c-callout>
+
+                <c-pagination-nav prev-href="admin-audit.html" prev-label="Denetim Günlüğü"></c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-blueprint/c-blueprint.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>
+

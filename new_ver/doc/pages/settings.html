@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayarlar — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-alert/c-alert.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="settings" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Ayarlar"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Ayarlar</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/settings</code> —
+                    <c-badge variant="warning">settings:view</c-badge> yetkisi gereklidir (admin ve mudur).
+                </p>
+                <p>
+                    Ayarlar modülü, her şirketin kendi çalışma kurallarını yapılandırmasını sağlar.
+                    Ofis IP adresi, QR imzalama anahtarı, mesai saatleri ve çalışma günleri buradan yönetilir.
+                    Bir şirketin ayarları yalnızca o şirketin admin/mudur kullanıcıları tarafından değiştirilebilir.
+                </p>
+
+                <h2>Ayarlar Modeli</h2>
+                <table>
+                    <thead><tr><th>Alan</th><th>Tip</th><th>Açıklama</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><code>office_ip</code></td>
+                            <td>string</td>
+                            <td>Ofis IP adresi. Giriş/çıkış isteklerinin bu IP'den gelmesi beklenir. Uzaktan giriş izni olmayan kullanıcılar farklı IP'den kayıt yapamaz.</td>
+                        </tr>
+                        <tr>
+                            <td><code>qr_secret</code></td>
+                            <td>string</td>
+                            <td>
+                                <c-tooltip text="QR Secret — QR kodu imzalamak için kullanılan gizli anahtar. Bu anahtarla üretilen QR değeri, giriş isteğinde doğrulanır. Anahtarı bilen biri sahte QR üretebilir; bu yüzden gizli tutulmalıdır." position="right"><span class="term">QR imzalama anahtarı</span></c-tooltip>.
+                                MD5 hash ile üretilir. Yenilenince tüm eski QR kodlar geçersiz olur.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>company_name</code></td>
+                            <td>string</td>
+                            <td>Şirket adı. Raporlarda ve bildirim başlıklarında kullanılır.</td>
+                        </tr>
+                        <tr>
+                            <td><code>work_days_per_week</code></td>
+                            <td>integer</td>
+                            <td>Haftalık çalışma günü sayısı: <code>5</code> (Pazartesi–Cuma) veya <code>6</code> (Cumartesi dahil).</td>
+                        </tr>
+                        <tr>
+                            <td><code>rounding_threshold_minutes</code></td>
+                            <td>integer</td>
+                            <td>
+                                <c-tooltip text="Mesai başlangıç yuvarlaması: eğer değer 30 dk ise, mesai başlangıcından 30 dk sonrasına kadar gelen girişler 'zamanında' sayılır. Bu süreyi aşanlar 'geç' olarak işaretlenir." position="right"><span class="term">Mesai yuvarlaması</span></c-tooltip>
+                                (dakika). Geç kalmayı hesaplamak için kullanılır.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>shift_start</code></td>
+                            <td>time</td>
+                            <td>Mesai başlangıç saati (HH:MM formatında, örn. <code>09:00</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>shift_end</code></td>
+                            <td>time</td>
+                            <td>Mesai bitiş saati (HH:MM formatında, örn. <code>18:00</code>).</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/settings" summary="Şirket ayarlarını getir">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"settings\": {\n    \"company_id\": \"uuid-...\",\n    \"office_ip\": \"192.168.1.100\",\n    \"qr_secret\": \"a1b2c3d4e5f6...\",\n    \"company_name\": \"Örnek A.Ş.\",\n    \"work_days_per_week\": 5,\n    \"rounding_threshold_minutes\": 30,\n    \"shift_start\": \"09:00\",\n    \"shift_end\": \"18:00\"\n  }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/settings" summary="Ayarları güncelle (kısmi güncelleme)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "shift_start",                "type": "time",    "required": false, "desc": "Yeni mesai başlangıç saati (HH:MM)." },
+                            { "name": "shift_end",                  "type": "time",    "required": false, "desc": "Yeni mesai bitiş saati (HH:MM)." },
+                            { "name": "work_days_per_week",         "type": "integer", "required": false, "desc": "5 veya 6." },
+                            { "name": "rounding_threshold_minutes", "type": "integer", "required": false, "desc": "Geç kalma eşiği (dakika)." },
+                            { "name": "office_ip",                  "type": "string",  "required": false, "desc": "Yeni ofis IP adresi." },
+                            { "name": "company_name",               "type": "string",  "required": false, "desc": "Şirket adı." }
+                        ],
+                        "request":  "{\n  \"shift_start\": \"08:30\",\n  \"shift_end\": \"17:30\",\n  \"work_days_per_week\": 5,\n  \"rounding_threshold_minutes\": 15\n}",
+                        "response": "{\n  \"success\": true,\n  \"settings\": { \"shift_start\": \"08:30\", \"shift_end\": \"17:30\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="Kısmi güncelleme (PATCH)">
+                    Tüm alanları göndermek zorunda değilsiniz. Yalnızca değiştirmek istediğiniz alanları gönderin;
+                    gönderilmeyenler mevcut değerlerini korur. Bu davranış HTTP
+                    <c-tooltip text="PATCH — kaynağı kısmen güncelleme metodur. PUT tüm kaynağı değiştirirken PATCH yalnızca belirtilen alanları günceller." position="right"><span class="term">PATCH</span></c-tooltip>
+                    semantiğidir.
+                </c-callout>
+
+                <c-api-endpoint method="POST" url="/api/v1/settings/generate-secret" summary="QR imzalama anahtarını yenile (admin)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"secret\": \"f3e2d1c0b9a8...\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-alert variant="warning" dismissible>
+                    <strong>Dikkat:</strong> Bu işlem tüm mevcut QR kodlarını geçersiz kılar.
+                    Ofis girişindeki ekranların yeni QR kodunu yüklemesi için yenilenmeleri gerekir.
+                    Anlık giriş/çıkış yapan personel geçici olarak etkilenebilir.
+                </c-alert>
+
+                <c-pagination-nav
+                    prev-href="holidays.html" prev-label="Tatil Günleri"
+                    next-href="reports.html" next-label="Raporlar">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-alert/c-alert.js"></script>
+</body>
+
+</html>

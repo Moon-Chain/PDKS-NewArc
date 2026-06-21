@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimlik Doğrulama — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-tabs/c-tabs.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-copy-button/c-copy-button.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-alert/c-alert.css">
+    <style>
+        .term {
+            color: var(--c-primary);
+            border-bottom: 1px dotted currentColor;
+            cursor: help;
+        }
+        .page-actions {
+            display: flex;
+            gap: var(--c-space-2);
+            justify-content: flex-end;
+            margin-bottom: var(--c-space-4);
+        }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="auth" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Kimlik Doğrulama"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Kimlik Doğrulama</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/auth</code>
+                </p>
+                <p>
+                    PDKS, kullanıcı kimliklerini
+                    <c-tooltip text="JWT (JSON Web Token) — kullanıcı bilgilerini (id, rol, şirket id) taşıyan şifreli dijital bir bilet. Sunucu her istekte bu bileti doğrular." position="top"><span class="term">JWT</span></c-tooltip>
+                    ile yönetir. Giriş başarılı olduğunda sunucu bir JWT üretir ve bunu tarayıcıya
+                    <c-tooltip text="httpOnly Cookie — yalnızca HTTP protokolü üzerinden erişilebilen çerez. JavaScript kodu bu çerezi okuyamaz; bu sayede XSS saldırılarına karşı daha güvenlidir." position="top"><span class="term">httpOnly cookie</span></c-tooltip>
+                    (<code>pdks_token</code>) olarak gönderir.
+                    Bundan sonra tarayıcı, her API isteğinde bu cookie'yi otomatik olarak sunucuya iletir; istemci tarafında token yönetmeye gerek kalmaz.
+                </p>
+
+                <c-callout variant="warning" title="Rate Limiting — Çok Fazla Deneme Engeli">
+                    <code>POST /login</code> endpoint'i
+                    <c-tooltip text="Rate Limiting — belirli bir süre içinde yapılabilecek istek sayısını sınırlama. Kötü niyetli kişilerin şifreyi tahmin etmeye çalışmasını (brute-force) engeller." position="right"><span class="term">rate limiting</span></c-tooltip>
+                    ile korunur. Kısa sürede çok fazla başarısız giriş denemesi yapılırsa IP adresi geçici olarak engellenir.
+                </c-callout>
+
+                <h2>Endpoint'ler</h2>
+                <p>Her endpoint'in üzerine tıklayarak detaylarını (parametreler, örnek istek/yanıt) görebilirsiniz.</p>
+
+                <c-api-endpoint method="POST" url="/api/v1/auth/login" summary="Sisteme giriş yap, JWT cookie al">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "personnelId", "type": "string", "required": true,  "desc": "Personel sicil numarası. Şirkete özgü benzersiz tanımlayıcı (örn. P001)." },
+                            { "name": "password",    "type": "string", "required": true,  "desc": "Kullanıcı şifresi. Veritabanında bcrypt ile saklanır; düz metin asla tutulmaz." },
+                            { "name": "deviceId",    "type": "string", "required": false, "desc": "Cihaz kimliği (opsiyonel). Belirtilirse audit log'a eklenir." }
+                        ],
+                        "request":  "{\n  \"personnelId\": \"P001\",\n  \"password\": \"gizliSifre123\",\n  \"deviceId\": \"device-abc-123\"\n}",
+                        "response": "{\n  \"success\": true,\n  \"profile\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"Ahmet Yılmaz\",\n    \"role\": \"personel\",\n    \"company_id\": \"uuid-...\",\n    \"title\": \"Yazılım Geliştirici\",\n    \"email\": \"ahmet@sirket.com\",\n    \"leave_balance\": 14,\n    \"can_remote_check_in\": false\n  }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="info" title="Cookie nasıl set edilir?">
+                    Başarılı girişte sunucu şunu yapar:
+                    <code>Set-Cookie: pdks_token=eyJ...; HttpOnly; Secure; SameSite=Strict; Max-Age=28800</code>
+                    Tarayıcı bu cookie'yi 8 saat saklar; bu süre dolduğunda ya da çıkış yapıldığında geçersiz olur.
+                </c-callout>
+
+                <c-api-endpoint method="POST" url="/api/v1/auth/logout" summary="Çıkış yap, token'ı geçersiz kıl">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"message\": \"Çıkış yapıldı\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="Çıkış nasıl çalışır?">
+                    Çıkış yapıldığında token'ın
+                    <c-tooltip text="JTI (JWT ID) — her token'a verilen eşsiz kimlik numarası." position="right"><span class="term">JTI</span></c-tooltip>'si
+                    <code>token_blacklist</code> tablosuna eklenir.
+                    Cookie temizlenir. Artık eski token ile yapılan her istek reddedilir.
+                    Bu sayede
+                    <c-tooltip text="Redis — hız için bellek içi veri deposu. PDKS bu ihtiyaç için Redis kullanmaz; kara liste doğrudan PostgreSQL'de tutulur." position="right"><span class="term">Redis</span></c-tooltip>
+                    gibi ek bir altyapıya ihtiyaç duyulmadan güvenli oturum kapatma sağlanır.
+                </c-callout>
+
+                <c-api-endpoint method="GET" url="/api/v1/auth/me" summary="Oturum açık kullanıcının güncel profilini getir">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"id\": \"uuid-...\",\n  \"name\": \"Ahmet Yılmaz\",\n  \"role\": \"personel\",\n  \"company_id\": \"uuid-...\",\n  \"personnel_id\": \"P001\",\n  \"title\": \"Yazılım Geliştirici\",\n  \"email\": \"ahmet@sirket.com\",\n  \"leave_balance\": 14,\n  \"start_date\": \"2024-01-15\",\n  \"avatar_path\": \"/uploads/avatars/company-id/ahmet.jpg\",\n  \"can_remote_check_in\": false,\n  \"push_subscription\": null\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-callout variant="tip" title="/me endpoint'i ne zaman kullanılır?">
+                    Uygulama ilk yüklendiğinde kullanıcının aktif oturum açık olup olmadığını kontrol etmek için çağrılır.
+                    Cookie geçerliyse profil döner; geçersizse <code>401</code> yanıt gelir ve giriş ekranı gösterilir.
+                    <code>password_hash</code> gibi hassas alanlar yanıta dahil edilmez.
+                </c-callout>
+
+                <c-api-endpoint method="PUT" url="/api/v1/auth/password" summary="Kendi şifreni değiştir (oturumu kapatır)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "currentPassword", "type": "string", "required": true, "desc": "Mevcut şifre. Yanlış girilirse 400 hatası döner." },
+                            { "name": "newPassword",     "type": "string", "required": true, "desc": "Yeni şifre. Bcrypt ile hash'lenerek kaydedilir." }
+                        ],
+                        "request":  "{\n  \"currentPassword\": \"eskiSifre\",\n  \"newPassword\": \"yeniGucluSifre!\"\n}",
+                        "response": "{\n  \"success\": true,\n  \"message\": \"Şifre güncellendi, lütfen tekrar giriş yapın\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-alert variant="warning" dismissible>
+                    <strong>Dikkat:</strong> Şifre değiştirme işlemi başarılı olduğunda mevcut oturum otomatik kapatılır (token kara listeye eklenir). Kullanıcının yeni şifresiyle tekrar giriş yapması gerekir.
+                </c-alert>
+
+                <c-api-endpoint method="GET" url="/api/v1/auth/health" summary="Veritabanı bağlantısını test et (auth gerektirmez)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"status\": \"ok\",\n  \"time\": \"2026-06-16T10:00:00.000Z\"\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <h2>JWT Payload Yapısı</h2>
+                <p>
+                    Giriş yapıldığında oluşturulan
+                    <c-tooltip text="JWT (JSON Web Token) — üç bölümden oluşur: Header (algoritma), Payload (taşınan veri), Signature (imza). Sunucu imzayı doğrulayarak token'ın gerçekten kendisi tarafından üretildiğini anlar." position="top"><span class="term">JWT</span></c-tooltip>
+                    şu bilgileri taşır:
+                </p>
+                <c-code-block lang="json">{
+  "id":         "550e8400-e29b-41d4-a716-446655440000",   // Kullanıcı UUID'si
+  "role":       "personel",                                // admin | mudur | takim_lideri | personel
+  "company_id": "şirket-uuid",                            // Her sorgu bu ID ile filtrelenir
+  "jti":        "eşsiz-token-kimliği",                    // Kara liste kontrolü için
+  "iat":        1718524800,                                // Token oluşturulma zamanı (Unix timestamp)
+  "exp":        1718553600                                 // Token son geçerlilik zamanı (8 saat sonra)
+}</c-code-block>
+
+                <c-callout variant="info" title="jti neden önemli?">
+                    <c-tooltip text="JTI (JWT ID) — her token'a verilen eşsiz numara. Çıkış yapılınca bu numara veritabanına eklenir. Sonraki her istekte bu numara kontrol edilir; kara listede varsa token reddedilir." position="right"><span class="term">jti</span></c-tooltip>
+                    sayesinde kullanıcı çıkış yaptığında token'ı sunucu tarafından geçersiz kılmak mümkün olur.
+                    Normalde JWT'ler süresi dolana kadar geçerlidir; <code>jti</code> kara listesi bu sorunu çözer.
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-href="overview.html" prev-label="Genel Bakış"
+                    next-href="attendance.html" next-label="Devam Takibi">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-tabs/c-tabs.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-copy-button/c-copy-button.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-alert/c-alert.js"></script>
+</body>
+
+</html>

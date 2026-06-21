@@ -1,0 +1,129 @@
+/* c-api-endpoint: REST endpoint kartı */
+
+.c-api-endpoint {
+    display: block;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    margin: var(--c-space-3) 0;
+    overflow: hidden;
+}
+
+.c-api-endpoint__header {
+    display: flex;
+    align-items: center;
+    gap: var(--c-space-2);
+    padding: 0.55rem var(--c-space-3);
+    background-color: var(--c-bg-subtle);
+    border-bottom: 1px solid var(--c-border);
+    cursor: pointer;
+    user-select: none;
+}
+
+.c-api-endpoint__url {
+    flex: 1;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--c-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.c-api-endpoint__summary {
+    font-size: 0.8rem;
+    color: var(--c-text-muted);
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+.c-api-endpoint__chevron {
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    color: var(--c-text-muted);
+    transition: transform .15s;
+}
+
+.c-api-endpoint__chevron--open {
+    transform: rotate(180deg);
+}
+
+.c-api-endpoint__body {
+    padding: var(--c-space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--c-space-3);
+}
+
+.c-api-endpoint__body--collapsed {
+    display: none;
+}
+
+.c-api-endpoint__section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--c-text-muted);
+    margin-bottom: var(--c-space-1);
+}
+
+/* Parametre tablosu */
+.c-api-endpoint__params {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.c-api-endpoint__params th,
+.c-api-endpoint__params td {
+    padding: var(--c-space-1) var(--c-space-2);
+    border: 1px solid var(--c-border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.c-api-endpoint__params th {
+    background-color: var(--c-bg-subtle);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.c-api-endpoint__params td:first-child {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--c-primary);
+    white-space: nowrap;
+}
+
+.c-api-endpoint__params td:nth-child(2) {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--c-text-muted);
+    white-space: nowrap;
+}
+
+.c-api-endpoint__required {
+    color: var(--c-danger);
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+
+/* İstek / Yanıt kod alanları */
+.c-api-endpoint__code {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: var(--c-space-2) var(--c-space-3);
+    border-radius: var(--c-radius-sm);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 0;
+}

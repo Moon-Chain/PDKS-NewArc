@@ -1,0 +1,45 @@
+/* c-tabs: sekmeli içerik (örn. Request / Response) */
+
+c-tab {
+    display: none;
+}
+
+.c-tabs__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--c-space-1);
+    border-bottom: 1px solid var(--c-border);
+    margin-bottom: var(--c-space-3);
+}
+
+.c-tabs__btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--c-text-muted);
+    border-bottom: 2px solid transparent;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.c-tabs__btn:hover {
+    color: var(--c-text);
+}
+
+.c-tabs__btn--active {
+    color: var(--c-text);
+    border-bottom-color: var(--c-primary);
+}
+
+.c-tabs__panel {
+    display: none;
+}
+
+.c-tabs__panel--active {
+    display: block;
+}
+
+.c-tabs__panel>*:last-child {
+    margin-bottom: 0;
+}

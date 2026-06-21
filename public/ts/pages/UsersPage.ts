@@ -308,7 +308,7 @@ export class UsersPage extends BasePage {
               </div>
               <div class="field-group">
                 <label class="field-label">Şifre</label>
-                <input class="field-input" type="password" x-model="addPassword" required placeholder="Şifre belirleyin" />
+                <input class="field-input" type="password" autocomplete="new-password" x-model="addPassword" required placeholder="Şifre belirleyin" />
               </div>
               <div class="field-group">
                 <label class="field-label">Yetki</label>
@@ -545,7 +545,7 @@ export class UsersPage extends BasePage {
                 </div>
                 <div class="field-group">
                   <label class="field-label">Şifre Sıfırla (Yeni Şifre)</label>
-                  <input class="field-input" name="password" type="password"
+                  <input class="field-input" name="password" type="password" autocomplete="new-password"
                          placeholder="Değiştirmek istemiyorsanız boş bırakın" />
                 </div>
                 <div class="field-group field-group--full">

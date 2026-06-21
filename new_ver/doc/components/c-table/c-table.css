@@ -1,0 +1,43 @@
+/* c-table: stillendirilmiş, sıralanabilir veri tablosu */
+
+.c-table {
+    display: block;
+    overflow-x: auto;
+    margin: var(--c-space-3) 0;
+}
+
+.c-table table {
+    margin: 0;
+}
+
+/* Zebra satır */
+.c-table--striped tbody tr:nth-child(even) td {
+    background-color: var(--c-bg-subtle);
+}
+
+/* Tıklanabilir başlık */
+.c-table__th--sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.c-table__th--sortable:hover {
+    background-color: var(--c-accent-bg);
+}
+
+.c-table__th--sortable::after {
+    content: ' \2195';
+    color: var(--c-text-muted);
+    font-size: 0.8em;
+}
+
+.c-table__th--asc::after {
+    content: ' \2191';
+    color: var(--c-primary);
+}
+
+.c-table__th--desc::after {
+    content: ' \2193';
+    color: var(--c-primary);
+}

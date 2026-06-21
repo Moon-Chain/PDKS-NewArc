@@ -1,0 +1,234 @@
+/* ==========================================================================
+   <c-blueprint>
+   Düğüm (node) tabanlı, sürüklenebilir bağlantı diyagramı.
+   Bağlantılar kartların merkezi yerine belirli port noktalarından çizilir.
+
+   Kullanım: <c-blueprint>
+               <script type="application/json">{ "nodes": [...], "connections": [...] }</script>
+             </c-blueprint>
+   ========================================================================== */
+
+.c-blueprint {
+    position: relative;
+    background-color: var(--c-bg-subtle);
+    background-image: radial-gradient(circle, var(--c-border) 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow: hidden;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    min-height: 480px;
+    cursor: default;
+    font-family: var(--c-font-family);
+}
+
+.c-blueprint.is-panning { cursor: grabbing; }
+
+/* Scene: pan & zoom hedefi */
+.c-blueprint__scene {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform-origin: 0 0;
+}
+
+/* SVG bağlantı katmanı — scene içinde, düğümlerin altında */
+.c-blueprint__svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+/* ── Node ── */
+.bp-node {
+    position: absolute;
+    min-width: 185px;
+    background: var(--c-bg-elevated);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), var(--c-shadow);
+    cursor: grab;
+    user-select: none;
+    overflow: visible; /* port noktaları taşabilsin */
+}
+
+.bp-node:hover {
+    border-color: var(--bp-node-color, var(--c-primary));
+    box-shadow: 0 0 0 1px var(--bp-node-color, var(--c-primary)), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bp-node.is-dragging {
+    cursor: grabbing;
+    z-index: 100 !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.bp-node__header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--bp-node-color, var(--c-primary));
+    border-radius: calc(var(--c-radius) - 1px) calc(var(--c-radius) - 1px) 0 0;
+}
+
+.bp-node__hd {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.55);
+    flex-shrink: 0;
+}
+
+.bp-node__body { padding: 6px 0; overflow: visible; }
+
+/* ── Port satırı ── */
+.bp-port {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 12px;
+    font-size: 12px;
+    color: var(--c-text);
+    overflow: visible;
+    gap: 5px;
+    line-height: 1.3;
+}
+
+.bp-port--in  { padding-left: 18px; }
+.bp-port--out { padding-right: 18px; flex-direction: row-reverse; }
+.bp-port--none { padding-left: 12px; color: var(--c-text-muted); font-size: 11px; }
+
+.bp-port__label { white-space: nowrap; }
+
+.bp-port__badge {
+    font-size: 10px;
+    color: var(--c-text-muted);
+    white-space: nowrap;
+}
+
+/* ── Port noktası — bağlantı çapası ── */
+.bp-port__dot {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--c-bg-elevated);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    transition: transform 0.1s ease;
+}
+
+.bp-node:hover .bp-port__dot {
+    transform: translateY(-50%) scale(1.25);
+}
+
+.bp-port--in  .bp-port__dot { left: -6px; }
+.bp-port--out .bp-port__dot { right: -6px; }
+
+/* ── Kontroller ── */
+.c-blueprint__controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 4px;
+    z-index: 20;
+}
+
+.c-blueprint__btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    background: var(--c-bg-elevated);
+    color: var(--c-text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.c-blueprint__btn:hover {
+    background: var(--c-bg);
+    color: var(--c-text);
+}
+
+.c-blueprint__hint {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    font-size: 10px;
+    color: var(--c-text-muted);
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Export paneli ── */
+.c-blueprint__export-panel {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: min(480px, calc(100% - 16px));
+    background: var(--c-bg-elevated);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), var(--c-shadow);
+    z-index: 30;
+    display: none;
+    flex-direction: column;
+    font-family: var(--c-font-family);
+}
+
+.c-blueprint__export-panel.is-open { display: flex; }
+
+.c-blueprint__export-hd {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 8px 7px 12px;
+    border-bottom: 1px solid var(--c-border);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--c-text-muted);
+}
+
+.c-blueprint__export-hd > span { flex: 1; }
+
+.c-blueprint__export-pre {
+    margin: 0;
+    padding: 10px 14px;
+    font-size: 11px;
+    line-height: 1.55;
+    max-height: 300px;
+    overflow: auto;
+    color: var(--c-text);
+    background: var(--c-bg-subtle);
+    border-radius: 0 0 var(--c-radius) var(--c-radius);
+    white-space: pre;
+    tab-size: 2;
+}
+
+/* ── Tam ekran ── */
+.c-blueprint:fullscreen {
+    border-radius: 0;
+    border: none;
+    min-height: 100vh;
+}
+
+.c-blueprint:-webkit-full-screen {
+    border-radius: 0;
+    border: none;
+    min-height: 100vh;
+}

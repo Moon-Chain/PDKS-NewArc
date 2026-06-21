@@ -1,0 +1,75 @@
+/* c-badge: küçük durum/etiket rozetleri (HTTP metodları dahil) */
+
+.c-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: var(--c-radius-sm);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: #fff;
+    line-height: 1.2;
+}
+
+/* HTTP method varyantları — sabit genişlik: en uzun (DELETE) esas alınır */
+.c-badge--get,
+.c-badge--post,
+.c-badge--put,
+.c-badge--patch,
+.c-badge--delete {
+    min-width: 4.6em;
+    justify-content: center;
+}
+
+.c-badge--get {
+    background-color: #0d6efd;
+}
+
+.c-badge--post {
+    background-color: #198754;
+}
+
+.c-badge--put {
+    background-color: #fd7e14;
+}
+
+.c-badge--patch {
+    background-color: #6f42c1;
+}
+
+.c-badge--delete {
+    background-color: #dc3545;
+}
+
+/* Genel renk varyantları */
+.c-badge--primary {
+    background-color: var(--c-primary);
+}
+
+.c-badge--secondary {
+    background-color: var(--c-secondary);
+}
+
+.c-badge--success {
+    background-color: var(--c-success);
+}
+
+.c-badge--danger {
+    background-color: var(--c-danger);
+}
+
+.c-badge--warning {
+    background-color: var(--c-warning);
+    color: #000;
+}
+
+.c-badge--info {
+    background-color: var(--c-info);
+    color: #000;
+}
+
+.c-badge--dark {
+    background-color: var(--c-dark);
+}

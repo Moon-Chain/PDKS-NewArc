@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fazla Mesai — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/vendor/css/prism-vscode_dark.min.css">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-code-block/c-code-block.css">
+    <link rel="stylesheet" href="../components/c-tabs/c-tabs.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <link rel="stylesheet" href="../components/c-api-endpoint/c-api-endpoint.css">
+    <link rel="stylesheet" href="../components/c-timeline/c-timeline.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="overtime" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Fazla Mesai"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Fazla Mesai</h1>
+
+                <p>
+                    Temel URL: <code>/api/v1/overtime</code>
+                </p>
+                <p>
+                    Fazla mesai modülü, çalışanların normal mesai saatleri dışında yaptıkları çalışmaları kayıt altına almasını
+                    ve yöneticilerin bu talepleri onaylamasını sağlar. Onay akışı,
+                    <a href="leaves.html">izin yönetimiyle</a> birebir aynıdır:
+                    <strong>pending → approved / rejected</strong>.
+                </p>
+
+                <h2>Onay Akışı</h2>
+
+                <c-timeline>
+                    <c-timeline-item date="1. Adım" title="pending — Talep oluşturuldu">
+                        <p><code>POST /overtime</code> ile kullanıcı tarih, saat ve açıklama göndererek talep açar. <code>overtime:requested</code> eventi yayınlanır; yöneticiye bildirim gider.</p>
+                    </c-timeline-item>
+                    <c-timeline-item date="2a. Onaylandı" title="approved — Onaylandı">
+                        <p>Admin veya müdür <code>PATCH /overtime/:id/approve</code> ile onaylar. <code>overtime:approved</code> eventi yayınlanır; kullanıcıya bildirim gider.</p>
+                    </c-timeline-item>
+                    <c-timeline-item date="2b. Reddedildi" title="rejected — Reddedildi">
+                        <p>Admin veya müdür <code>PATCH /overtime/:id/reject</code> ile reddeder. <code>overtime:rejected</code> eventi yayınlanır.</p>
+                    </c-timeline-item>
+                    <c-timeline-item date="2c. İptal" title="Kullanıcı iptal etti">
+                        <p>Kullanıcı kendi <code>pending</code> talebini <code>PATCH /overtime/:id/cancel</code> ile iptal edebilir. Onaylanmış talepler iptal edilemez.</p>
+                    </c-timeline-item>
+                </c-timeline>
+
+                <c-callout variant="info" title="Onay yetkisi">
+                    <code>overtime:approve</code> yetkisi <c-badge variant="danger">admin</c-badge> ve <c-badge variant="warning">mudur</c-badge> rollerine aittir.
+                    Takım lideri fazla mesai talebini <em>onaylayamaz</em> — bu izin yönetiminden farklıdır.
+                </c-callout>
+
+                <h2>Endpoint'ler</h2>
+
+                <c-api-endpoint method="GET" url="/api/v1/overtime" summary="Fazla mesai taleplerini listele (rol bazlı filtre)">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "page",   "type": "integer", "required": false, "desc": "Sayfa numarası (varsayılan: 1)." },
+                            { "name": "limit",  "type": "integer", "required": false, "desc": "Sayfa başı kayıt sayısı (varsayılan: 20)." },
+                            { "name": "status", "type": "string",  "required": false, "desc": "Durum filtresi: pending | approved | rejected" },
+                            { "name": "userId", "type": "UUID",    "required": false, "desc": "Belirli bir kullanıcının talepleri (yalnızca admin/mudur)." }
+                        ],
+                        "response": "{\n  \"success\": true,\n  \"rows\": [\n    {\n      \"id\": \"uuid-...\",\n      \"user_name\": \"Ahmet Yılmaz\",\n      \"date\": \"2026-06-15\",\n      \"hours\": 2.5,\n      \"description\": \"Kritik deployment\",\n      \"status\": \"pending\"\n    }\n  ],\n  \"total\": 5\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="POST" url="/api/v1/overtime" summary="Yeni fazla mesai talebi oluştur">
+                    <script type="application/json">
+                    {
+                        "params": [
+                            { "name": "date",        "type": "date",    "required": true,  "desc": "Fazla mesai yapılan tarih (YYYY-MM-DD). Gelecek tarih girilemez." },
+                            { "name": "hours",       "type": "decimal", "required": true,  "desc": "Saat sayısı, ondalıklı girilebilir (örn. 2.5 = 2 saat 30 dk). Maksimum 24." },
+                            { "name": "description", "type": "string",  "required": false, "desc": "Yapılan işin kısa açıklaması. Yöneticiye gösterilir." }
+                        ],
+                        "request":  "{\n  \"date\": \"2026-06-15\",\n  \"hours\": 2.5,\n  \"description\": \"Kritik deployment ve post-deployment izleme\"\n}",
+                        "response": "{\n  \"success\": true,\n  \"overtime\": {\n    \"id\": \"uuid-...\",\n    \"date\": \"2026-06-15\",\n    \"hours\": 2.5,\n    \"status\": \"pending\"\n  }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/overtime/:id/approve" summary="Talebi onayla (overtime:approve)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"overtime\": { \"id\": \"uuid-...\", \"status\": \"approved\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/overtime/:id/reject" summary="Talebi reddet (overtime:approve)">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"overtime\": { \"id\": \"uuid-...\", \"status\": \"rejected\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-api-endpoint method="PATCH" url="/api/v1/overtime/:id/cancel" summary="Kendi pending talebini iptal et">
+                    <script type="application/json">
+                    {
+                        "response": "{\n  \"success\": true,\n  \"overtime\": { \"id\": \"uuid-...\", \"status\": \"cancelled\" }\n}"
+                    }
+                    </script>
+                </c-api-endpoint>
+
+                <c-pagination-nav
+                    prev-href="leaves.html" prev-label="İzin Yönetimi"
+                    next-href="notifications.html" next-label="Bildirimler">
+                </c-pagination-nav>
+            </div>
+            <c-toc></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+    <c-heading-anchor></c-heading-anchor>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../assets/vendor/js/prism.min.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-code-block/c-code-block.js"></script>
+    <script src="../components/c-tabs/c-tabs.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+    <script src="../components/c-api-endpoint/c-api-endpoint.js"></script>
+    <script src="../components/c-timeline/c-timeline.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,30 @@
+/* c-breadcrumb: sayfa konum bilgisi */
+
+.c-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--c-space-3) 0;
+    font-size: 0.9rem;
+    color: var(--c-text-muted);
+}
+
+.c-breadcrumb__item {
+    display: flex;
+    align-items: center;
+}
+
+.c-breadcrumb__item+.c-breadcrumb__item::before {
+    content: "/";
+    padding: 0 var(--c-space-2);
+    color: var(--c-text-muted);
+}
+
+.c-breadcrumb__item a {
+    color: var(--c-link);
+}
+
+.c-breadcrumb__item--active {
+    color: var(--c-text);
+}

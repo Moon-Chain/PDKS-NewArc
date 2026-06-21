@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Eylem Akışları — PDKS Docs</title>
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../components/c-theme-toggle/c-theme-toggle.css">
+    <link rel="stylesheet" href="../components/c-navbar/c-navbar.css">
+    <link rel="stylesheet" href="../components/c-sidebar/c-sidebar.css">
+    <link rel="stylesheet" href="../components/c-breadcrumb/c-breadcrumb.css">
+    <link rel="stylesheet" href="../components/c-callout/c-callout.css">
+    <link rel="stylesheet" href="../components/c-badge/c-badge.css">
+    <link rel="stylesheet" href="../components/c-toc/c-toc.css">
+    <link rel="stylesheet" href="../components/c-pagination-nav/c-pagination-nav.css">
+    <link rel="stylesheet" href="../components/c-read-progress/c-read-progress.css">
+    <link rel="stylesheet" href="../components/c-back-to-top/c-back-to-top.css">
+    <link rel="stylesheet" href="../components/c-heading-anchor/c-heading-anchor.css">
+    <link rel="stylesheet" href="../components/c-print-button/c-print-button.css">
+    <link rel="stylesheet" href="../components/c-tooltip/c-tooltip.css">
+    <style>
+        .term { color: var(--c-primary); border-bottom: 1px dotted currentColor; cursor: help; }
+        .page-actions { display: flex; gap: var(--c-space-2); justify-content: flex-end; margin-bottom: var(--c-space-4); }
+
+        .flow-tree {
+            background: var(--c-bg-code, #111);
+            border: 1px solid var(--c-border);
+            border-left: 3px solid var(--c-primary);
+            border-radius: var(--c-radius);
+            padding: 1.25rem 1.5rem;
+            font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.79rem;
+            line-height: 1.95;
+            overflow-x: auto;
+            white-space: pre;
+            margin: var(--c-space-3) 0;
+            color: var(--c-text);
+        }
+        .ft-t   { color: #f0c040; font-weight: 700; }
+        .ft-f   { color: #7cb9f0; }
+        .ft-e   { color: #fb923c; }
+        .ft-d   { color: #c084fc; }
+        .ft-c   { color: #86efac; }
+        .ft-m   { color: #6b7280; font-style: italic; }
+        .ft-err { color: #f87171; }
+        .ft-ok  { color: #4ade80; }
+        .ft-db  { color: #fbbf24; }   /* veritabanı */
+        .ft-net { color: #38bdf8; }   /* ağ/HTTP */
+
+        .flow-section {
+            border: 1px solid var(--c-border);
+            border-radius: var(--c-radius);
+            padding: var(--c-space-3) var(--c-space-4);
+            margin: var(--c-space-4) 0;
+            background: var(--c-bg-elevated);
+        }
+        .flow-section h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--c-text-muted);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .flow-section h3::before {
+            content: '';
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--c-primary);
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <c-read-progress></c-read-progress>
+    <c-navbar brand="PDKS Dokümantasyonu" home="../index.html"></c-navbar>
+    <c-sidebar active="arch-flows" base="./"></c-sidebar>
+
+    <main class="page page--with-toc">
+        <div class="page-inner">
+            <div>
+                <c-breadcrumb items="PDKS Docs|../index.html>Mimari>Kullanıcı Akışları"></c-breadcrumb>
+
+                <div class="page-actions">
+                    <c-print-button label="Sayfayı Yazdır"></c-print-button>
+                </div>
+
+                <h1>Kullanıcı Eylem Akışları</h1>
+
+                <p>
+                    Bu sayfa; gerçek kullanıcı eylemlerinin istemciden başlayıp veritabanına
+                    ulaşana kadar geçtiği <strong>tam dallanma yolunu</strong> gösterir.
+                    Her hata yolu, her koşul dalı ve her yan etki (event, bildirim, SSE) dahil edilmiştir.
+                </p>
+
+                <c-callout variant="info" title="Renk rehberi">
+                    <span style="color:#f0c040;font-family:monospace;font-weight:700">Sarı/Kalın</span> — kullanıcı eylemi &nbsp;|&nbsp;
+                    <span style="color:#7cb9f0;font-family:monospace">Mavi</span> — fonksiyon/metod &nbsp;|&nbsp;
+                    <span style="color:#fb923c;font-family:monospace">Turuncu</span> — event emit &nbsp;|&nbsp;
+                    <span style="color:#fbbf24;font-family:monospace">Altın</span> — SQL / veritabanı &nbsp;|&nbsp;
+                    <span style="color:#38bdf8;font-family:monospace">Açık mavi</span> — HTTP isteği &nbsp;|&nbsp;
+                    <span style="color:#86efac;font-family:monospace">Yeşil</span> — koşul/dal &nbsp;|&nbsp;
+                    <span style="color:#f87171;font-family:monospace">Kırmızı</span> — hata/red &nbsp;|&nbsp;
+                    <span style="color:#4ade80;font-family:monospace">Parlak yeşil</span> — başarı
+                </c-callout>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>1 — Giriş Yapma (Login)</h2>
+
+                <pre class="flow-tree"><span class="ft-t">Kullanıcı login formunu doldurup "Giriş Yap"a tıkladı</span>
+│
+├─ <span class="ft-m">── İstemci tarafı ──────────────────────────────────────────────</span>
+│    ├─ <span class="ft-f">LoginPage.handleSubmit()</span>  tetiklendi
+│    ├─ <span class="ft-d">email</span> + <span class="ft-d">password</span> form verisi toplandı
+│    ├─ <span class="ft-c">[alan boşsa]</span>  → hata mesajı göster, istek gönderme
+│    └─ <span class="ft-net">api.post('/api/v1/auth/login', {email, password})</span>
+│         <span class="ft-m">fetch() — credentials: 'include' (cookie için)</span>
+│
+├─ <span class="ft-m">── Sunucu — Middleware zinciri ─────────────────────────────────</span>
+│    ├─ <span class="ft-f">requestId</span>  → req.requestId = UUID
+│    ├─ <span class="ft-f">globalLimiter</span>  → IP bazlı istek sayısı kontrol
+│    │    └─ <span class="ft-c">[limit aşıldı]</span>  → <span class="ft-err">429 Too Many Requests</span>
+│    └─ <span class="ft-f">validate(loginSchema)</span>  → body kontrol
+│         └─ <span class="ft-c">[eksik alan / geçersiz email]</span>  → <span class="ft-err">400 Bad Request</span>
+│
+├─ <span class="ft-m">── Route Handler: POST /api/v1/auth/login ──────────────────────</span>
+│    └─ <span class="ft-f">AuthService.login(email, password)</span>
+│         ├─ <span class="ft-f">UserRepository.findByEmail(email, companyId)</span>
+│         │    └─ <span class="ft-db">SELECT id, password_hash, role, is_active FROM users WHERE email=$1</span>
+│         │         └─ <span class="ft-c">[kullanıcı bulunamadı]</span>  → <span class="ft-err">throw AppError(401, 'Geçersiz kimlik bilgileri')</span>
+│         ├─ <span class="ft-f">bcrypt.compare(password, user.password_hash)</span>
+│         │    └─ <span class="ft-c">[eşleşmedi]</span>  → <span class="ft-err">throw AppError(401, 'Geçersiz kimlik bilgileri')</span>
+│         ├─ <span class="ft-c">[user.is_active === false]</span>  → <span class="ft-err">throw AppError(403, 'Hesap devre dışı')</span>
+│         ├─ <span class="ft-f">jwt.sign({id, role, company_id, jti}, JWT_SECRET, {expiresIn:'7d'})</span>
+│         ├─ <span class="ft-f">AuditRepository.log({actor: user.id, action: 'login', ip})</span>
+│         │    └─ <span class="ft-db">INSERT INTO audit_log (...) VALUES (...)</span>
+│         └─ <span class="ft-ok">return {user, token}</span>
+│
+├─ <span class="ft-m">── HTTP Yanıtı ─────────────────────────────────────────────────</span>
+│    ├─ <span class="ft-f">res.cookie('pdks_token', token, {httpOnly: true, secure, sameSite:'lax'})</span>
+│    └─ <span class="ft-net">res.json(200, {user, message: 'Giriş başarılı'})</span>
+│
+└─ <span class="ft-m">── İstemci — Yanıt işlendi ─────────────────────────────────────</span>
+     ├─ <span class="ft-f">state.set('user',    {id, role, company_id})</span>
+     ├─ <span class="ft-f">state.set('profile', profile)</span>
+     ├─ <span class="ft-m">state.watch('user') tetiklendi:</span>
+     │    ├─ <span class="ft-f">renderTopBar()</span>  → TopBar mount edildi
+     │    ├─ <span class="ft-f">renderNav()</span>     → BottomNav mount edildi
+     │    └─ <span class="ft-f">eventStream.connect()</span>  → SSE bağlantısı açıldı
+     └─ <span class="ft-f">router.navigate('/home')</span>  → <span class="ft-ok">✓ Ana sayfa açıldı</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>2 — QR ile Giriş/Çıkış Kaydı</h2>
+
+                <pre class="flow-tree"><span class="ft-t">Kullanıcı Ana Sayfa'da "QR Tara" butonuna tıkladı</span>
+│
+├─ <span class="ft-f">new QRScanner().open(onSuccess)</span>
+│    ├─ <span class="ft-f">navigator.mediaDevices.getUserMedia({video: true})</span>
+│    │    └─ <span class="ft-c">[izin reddedildi]</span>  → <span class="ft-err">hata toast: Kamera izni gerekli</span>
+│    ├─ <span class="ft-d">&lt;video&gt;</span> elementi DOM'a eklendi, stream bağlandı
+│    └─ <span class="ft-m">requestAnimationFrame döngüsü başladı:</span>
+│         ├─ canvas.drawImage(video frame)
+│         ├─ <span class="ft-f">jsQR(imageData)</span>  → QR kodu algılandı mı?
+│         │    └─ <span class="ft-c">[algılandı]</span>  → <span class="ft-d">qrValue</span> alındı, stream durduruldu
+│         └─ <span class="ft-c">[algılanmadı]</span>  → döngü devam eder
+│
+├─ <span class="ft-m">── QR değeri alındı, işleniyor ─────────────────────────────────</span>
+│
+├─ <span class="ft-c">[çevrimdışı]</span>  → offline queue akışı
+│    ├─ IndexedDB'ye kayıt: <span class="ft-d">{type, qrValue, timestamp}</span>
+│    ├─ <span class="ft-ok">Toast: "Kayıt offline tutuldu, internete bağlanınca gönderilecek"</span>
+│    └─ <span class="ft-m">→ bkz. Bölüm 5: Offline → Online Sync</span>
+│
+└─ <span class="ft-c">[çevrimiçi]</span>
+     ├─ <span class="ft-net">api.post('/api/v1/attendance', {qrValue, type: 'in'})</span>
+     │
+     ├─ <span class="ft-m">── Sunucu — Middleware ─────────────────────────────────────────</span>
+     │    ├─ <span class="ft-f">auth</span>  → cookie decode → req.user set
+     │    │    └─ <span class="ft-c">[token yoksa / geçersizse]</span>  → <span class="ft-err">401 Unauthorized</span>
+     │    └─ <span class="ft-f">validate</span>  → qrValue zorunlu
+     │
+     ├─ <span class="ft-m">── Route Handler: POST /api/v1/attendance ──────────────────────</span>
+     │    └─ <span class="ft-f">AttendanceService.checkIn({userId, companyId, qrValue, type})</span>
+     │         ├─ <span class="ft-f">SettingsRepository.get(companyId)</span>
+     │         │    └─ <span class="ft-db">SELECT qr_secret, work_start, work_end FROM settings WHERE company_id=$1</span>
+     │         ├─ <span class="ft-c">[qrValue !== settings.qr_secret]</span>  → <span class="ft-err">throw AppError(400, 'Geçersiz QR kodu')</span>
+     │         ├─ <span class="ft-f">AttendanceRepository.getLastRecord(userId, today)</span>
+     │         │    └─ <span class="ft-db">SELECT * FROM attendance_logs WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1</span>
+     │         ├─ <span class="ft-c">[son kayıt type='in' ve 30 saniye içindeyse]</span>  → <span class="ft-err">throw AppError(409, 'Çok hızlı')</span>
+     │         ├─ <span class="ft-c">[son kayıt type='in']</span>  → yeni kayıt type='out' olacak
+     │         ├─ <span class="ft-c">[son kayıt type='out' veya yok]</span>  → yeni kayıt type='in'
+     │         ├─ <span class="ft-f">AttendanceRepository.create({userId, companyId, type, timestamp})</span>
+     │         │    └─ <span class="ft-db">INSERT INTO attendance_logs (user_id, company_id, type, timestamp) VALUES (...)</span>
+     │         ├─ <span class="ft-e">emitter.emit('attendance:checkin', {userId, companyId, type, timestamp})</span>
+     │         │    └─ SSE Manager → bağlı admin client'larına anlık bildirim
+     │         └─ <span class="ft-ok">return {record, message}</span>
+     │
+     └─ <span class="ft-m">── İstemci ─────────────────────────────────────────────────────</span>
+          ├─ <span class="ft-ok">Toast: "Giriş kaydedildi / Çıkış kaydedildi"</span>
+          └─ <span class="ft-f">HomePage'in durum kartı yenilendi</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>3 — İzin Talebi Oluşturma</h2>
+
+                <pre class="flow-tree"><span class="ft-t">Kullanıcı İzinler sayfasında "İzin Talep Et" butonuna tıkladı</span>
+│
+├─ <span class="ft-f">LeavesPage.openNewLeaveModal()</span>
+│    └─ <span class="ft-f">new Modal().open('İzin Talebi', formHTML, onSubmit)</span>
+│
+├─ <span class="ft-t">Kullanıcı formu doldurup "Gönder"e tıkladı</span>
+│    ├─ <span class="ft-d">startDate, endDate, type, reason</span> form verisi toplandı
+│    ├─ <span class="ft-c">[tarihler geçersiz / boşsa]</span>  → form hataları göster
+│    └─ <span class="ft-net">api.post('/api/v1/leaves', {startDate, endDate, type, reason})</span>
+│
+├─ <span class="ft-m">── Sunucu — Middleware ─────────────────────────────────────────</span>
+│    ├─ <span class="ft-f">auth</span>  → req.user set
+│    └─ <span class="ft-f">validate</span>  → tarih zorunlu, type enum'a uygun mu
+│
+├─ <span class="ft-m">── Route Handler: POST /api/v1/leaves ──────────────────────────</span>
+│    └─ <span class="ft-f">LeaveService.create({userId, companyId, startDate, endDate, type, reason})</span>
+│         ├─ <span class="ft-f">HolidayRepository.getByYear(year, companyId)</span>
+│         │    └─ <span class="ft-db">SELECT date FROM holidays WHERE company_id=$1 AND year=$2</span>
+│         ├─ İş günü hesabı: startDate → endDate arası hafta sonu + tatil çıkarıldı
+│         │    └─ <span class="ft-d">businessDays</span> = toplam iş günü
+│         ├─ <span class="ft-f">LeaveRepository.getBalance(userId, year)</span>
+│         │    └─ <span class="ft-db">SELECT used_days, total_days FROM leave_balances WHERE user_id=$1 AND year=$2</span>
+│         ├─ <span class="ft-c">[kalan bakiye &lt; businessDays]</span>  → <span class="ft-err">throw AppError(400, 'Yetersiz izin bakiyesi')</span>
+│         ├─ <span class="ft-f">LeaveRepository.create({...data, businessDays, status: 'pending'})</span>
+│         │    └─ <span class="ft-db">INSERT INTO leaves (user_id, company_id, start_date, end_date, type, days, status) VALUES (...)</span>
+│         ├─ Yönetici bulundu: <span class="ft-f">UserRepository.findManager(companyId)</span>
+│         └─ <span class="ft-e">emitter.emit('leave:requested', {companyId, managerId, userId, userName, leaveId, days, type})</span>
+│              └─ <span class="ft-m">events/setup.ts listener:</span>
+│                   └─ <span class="ft-f">NotificationService.notify({userId: managerId, title: 'Yeni İzin Talebi', ...})</span>
+│                        ├─ <span class="ft-f">NotificationRepository.create({...})</span>
+│                        │    └─ <span class="ft-db">INSERT INTO notifications (...)</span>
+│                        ├─ <span class="ft-c">[yönetici SSE bağlıysa]</span>  → SSE akışı: anlık bildirim
+│                        └─ <span class="ft-c">[yönetici push aboneyse]</span>  → <span class="ft-f">webPush.sendNotification()</span>
+│
+└─ <span class="ft-m">── İstemci ─────────────────────────────────────────────────────</span>
+     ├─ <span class="ft-ok">Toast: "İzin talebiniz gönderildi"</span>
+     └─ <span class="ft-f">İzin listesi yenilendi</span>  → api.get('/api/v1/leaves')</pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>4 — İzin Onayı (Yönetici)</h2>
+
+                <pre class="flow-tree"><span class="ft-t">Yönetici Onaylar sayfasında "Onayla" butonuna tıkladı</span>
+│
+├─ <span class="ft-f">ApprovalsPage.approve(leaveId, 'leave')</span>
+│    └─ <span class="ft-net">api.post('/api/v1/leaves/{id}/approve')</span>
+│
+├─ <span class="ft-m">── Sunucu — Middleware ─────────────────────────────────────────</span>
+│    ├─ <span class="ft-f">auth</span>  → req.user set
+│    ├─ <span class="ft-f">roles(['admin', 'mudur'])</span>  → yetki kontrol
+│    │    └─ <span class="ft-c">[role 'personel' ise]</span>  → <span class="ft-err">403 Forbidden</span>
+│    └─ <span class="ft-f">validate</span>  → leaveId path param
+│
+├─ <span class="ft-m">── Route Handler: POST /api/v1/leaves/:id/approve ──────────────</span>
+│    └─ <span class="ft-f">LeaveService.approve(leaveId, approverId, companyId)</span>
+│         ├─ <span class="ft-f">LeaveRepository.findById(leaveId, companyId)</span>
+│         │    └─ <span class="ft-c">[bulunamadı]</span>  → <span class="ft-err">throw AppError(404, 'İzin bulunamadı')</span>
+│         ├─ <span class="ft-c">[leave.status !== 'pending']</span>  → <span class="ft-err">throw AppError(400, 'Bu talep zaten işleme alınmış')</span>
+│         ├─ <span class="ft-f">LeaveRepository.update(leaveId, {status: 'approved', approved_by: approverId, approved_at: now})</span>
+│         │    └─ <span class="ft-db">UPDATE leaves SET status='approved', approved_by=$2 WHERE id=$1</span>
+│         ├─ <span class="ft-e">emitter.emit('leave:approved', {companyId, userId: leave.user_id, approverName, leaveId, days})</span>
+│         │    └─ <span class="ft-m">events/setup.ts listener:</span>
+│         │         └─ <span class="ft-f">NotificationService.notify({userId: personel, title: 'İzin Onaylandı', type:'success'})</span>
+│         │              ├─ <span class="ft-db">INSERT INTO notifications (...)</span>
+│         │              ├─ <span class="ft-c">[personel SSE bağlıysa]</span>  → anlık bildirim
+│         │              └─ <span class="ft-c">[personel push aboneyse]</span>  → tarayıcı bildirimi
+│         └─ <span class="ft-f">AuditRepository.log({actor: approverId, action: 'leave_approved', target: leaveId})</span>
+│              └─ <span class="ft-db">INSERT INTO audit_log (...)</span>
+│
+└─ <span class="ft-m">── İstemci ─────────────────────────────────────────────────────</span>
+     ├─ <span class="ft-ok">Toast: "İzin onaylandı"</span>
+     └─ <span class="ft-f">Onay listesi yenilendi</span>  → bekleyen talep listeden kalktı
+
+<span class="ft-m">── Paralel: Personelin tarafında ───────────────────────────────────</span>
+<span class="ft-c">[personel aynı anda uygulamadaysa → SSE üzerinden]</span>
+└─ <span class="ft-e">EventSource mesajı alındı: {type: 'notification', data: {title: 'İzin Onaylandı'}}</span>
+     ├─ <span class="ft-f">NotificationPanel</span>  → zil ikonunda kırmızı nokta belirdi
+     └─ <span class="ft-f">Toast.show('İzin talebiniz onaylandı', 'success')</span>  → ekranda gösterildi</pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>5 — Offline → Online Senkronizasyon</h2>
+
+                <pre class="flow-tree"><span class="ft-t">Kullanıcı internet yokken QR kodu taradı</span>
+│
+├─ <span class="ft-net">api.post('/api/v1/attendance', ...)</span>  → ağ isteği başarısız
+│    └─ <span class="ft-f">offline.ts: addToQueue({type, qrValue, timestamp})</span>
+│         └─ <span class="ft-d">IndexedDB</span>  → kayıt eklendi
+│              <span class="ft-d">store: 'offline_queue'</span>
+│              <span class="ft-d">key: auto-increment id</span>
+│
+├─ <span class="ft-ok">Toast: "Offline kayıt tutuldu, internete bağlanınca gönderilecek"</span>
+│
+│
+<span class="ft-t">Kullanıcı internete bağlandı</span>
+│
+├─ <span class="ft-c">[Yol 1: window 'online' event]</span>
+│    └─ <span class="ft-f">window.addEventListener('online', syncQueue)</span>  tetiklendi
+│         └─ <span class="ft-f">syncQueue(sendOfflineItem)</span>  çağrıldı
+│
+├─ <span class="ft-c">[Yol 2: Service Worker Background Sync (tarayıcı destekliyorsa)]</span>
+│    └─ <span class="ft-e">SW 'sync' event</span>  → <span class="ft-f">listenSWSync(sendOfflineItem)</span>  tetiklendi
+│
+└─ <span class="ft-m">── Senkronizasyon döngüsü ──────────────────────────────────────</span>
+     ├─ <span class="ft-f">IndexedDB'deki tüm offline_queue kayıtları okundu</span>
+     └─ Her kayıt için:
+          ├─ <span class="ft-f">sendOfflineItem({type, qrValue, timestamp})</span>
+          │    └─ <span class="ft-net">api.post('/api/v1/attendance', {..., isOffline: true})</span>
+          │         ├─ <span class="ft-c">[200 başarılı]</span>
+          │         │    ├─ IndexedDB'den kayıt silindi
+          │         │    └─ <span class="ft-ok">Toast: "Offline kayıt senkronize edildi"</span>
+          │         └─ <span class="ft-c">[hata — 409 Conflict vs.]</span>
+          │              ├─ Kayıt sırada kalır
+          │              └─ Sonraki online olunca tekrar denenecek
+          └─ <span class="ft-m">Tüm kayıtlar işlenene kadar devam edildi</span></pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>6 — SSE Gerçek Zamanlı Bağlantı</h2>
+
+                <pre class="flow-tree"><span class="ft-t">Kullanıcı giriş yaptı → eventStream.connect() çağrıldı</span>
+│
+├─ <span class="ft-f">new EventSource('/api/v1/events')</span>
+│    └─ Tarayıcı kalıcı HTTP bağlantısı açtı
+│
+├─ <span class="ft-m">── Sunucu: GET /api/v1/events ──────────────────────────────────</span>
+│    ├─ <span class="ft-f">auth middleware</span>  → req.user set
+│    ├─ <span class="ft-f">res.setHeader('Content-Type', 'text/event-stream')</span>
+│    ├─ <span class="ft-f">res.setHeader('Cache-Control', 'no-cache')</span>
+│    ├─ <span class="ft-f">sseClients.set(userId, res)</span>  → client Map'e eklendi
+│    └─ <span class="ft-m">İstemci bağlı kaldıkça bağlantı açık:</span>
+│         <span class="ft-m">Her 30 saniyede: res.write(':ping\n\n')  → heartbeat</span>
+│
+├─ <span class="ft-m">── Olay tetiklenince (örn. izin onayı) ─────────────────────────</span>
+│    └─ <span class="ft-f">NotificationService.notify({userId, ...})</span>
+│         ├─ <span class="ft-c">[userId SSE bağlıysa]</span>  → sseClients.get(userId)
+│         └─ <span class="ft-f">res.write(`event: notification\ndata: ${JSON.stringify(payload)}\n\n`)</span>
+│
+├─ <span class="ft-m">── İstemci: EventSource mesajı aldı ────────────────────────────</span>
+│    └─ <span class="ft-f">EventStream.on('notification', handler)</span>  tetiklendi
+│         ├─ <span class="ft-f">NotificationPanel</span>  güncellendi (zil ikonu)
+│         └─ <span class="ft-f">Toast.show(payload.title, 'info')</span>
+│
+└─ <span class="ft-m">── Bağlantı kopunca ────────────────────────────────────────────</span>
+     ├─ <span class="ft-c">[kullanıcı çıkış yaptı]</span>  → <span class="ft-f">eventStream.disconnect()</span>
+     │    └─ EventSource.close() → sunucu req.on('close') tetiklenir
+     │         └─ <span class="ft-f">sseClients.delete(userId)</span>
+     └─ <span class="ft-c">[ağ hatası / tarayıcı sekmesi kapandı]</span>
+          └─ EventSource otomatik yeniden bağlanmayı dener (browser built-in)</pre>
+
+                <!-- ═══════════════════════════════════════════════════════════ -->
+                <h2>7 — Excel Raporu İndirme</h2>
+
+                <pre class="flow-tree"><span class="ft-t">Admin "Rapor İndir" butonuna tıkladı</span>
+│
+├─ <span class="ft-f">ReportsPage.downloadReport(type, from, to)</span>
+│    └─ <span class="ft-net">api.get('/api/v1/reports/attendance?from=...&amp;to=...', {responseType: 'blob'})</span>
+│
+├─ <span class="ft-m">── Sunucu ──────────────────────────────────────────────────────</span>
+│    ├─ <span class="ft-f">auth + roles(['admin'])</span>  → yetki kontrol
+│    └─ <span class="ft-f">ExcelService.generateAttendanceReport(companyId, from, to)</span>
+│         ├─ <span class="ft-f">AttendanceRepository.getByDateRange(companyId, from, to)</span>
+│         │    └─ <span class="ft-db">SELECT u.name, a.type, a.timestamp FROM attendance_logs a JOIN users u...</span>
+│         ├─ <span class="ft-f">new ExcelJS.Workbook()</span>  → çalışma kitabı oluşturuldu
+│         ├─ Başlık satırı + veri satırları eklendi
+│         ├─ Stil uygulandı (kolon genişlikleri, bold başlık)
+│         ├─ <span class="ft-f">workbook.xlsx.writeBuffer()</span>  → Buffer üretildi
+│         └─ <span class="ft-ok">return buffer</span>
+│    ├─ <span class="ft-f">res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')</span>
+│    └─ <span class="ft-f">res.setHeader('Content-Disposition', 'attachment; filename="devam_raporu.xlsx"')</span>
+│
+└─ <span class="ft-m">── İstemci ─────────────────────────────────────────────────────</span>
+     ├─ Blob alındı
+     ├─ <span class="ft-f">URL.createObjectURL(blob)</span>  → geçici URL oluşturuldu
+     ├─ <span class="ft-d">&lt;a href="..." download="..."&gt;</span>  → tıklatıldı, indirme başladı
+     └─ <span class="ft-ok">✓ .xlsx dosyası indirildi</span></pre>
+
+                <c-callout variant="tip" title="Tüm akışlarda ortak örüntü">
+                    Her kullanıcı eylemi şu zinciri izler:
+                    <strong>İstemci UI</strong> →
+                    <strong>ApiClient.fetch()</strong> →
+                    <strong>Middleware (auth + rate limit + validate)</strong> →
+                    <strong>Route Handler</strong> →
+                    <strong>Service (iş mantığı)</strong> →
+                    <strong>Repository (SQL)</strong> →
+                    <strong>PostgreSQL</strong>.
+                    Yan etkiler (bildirim, SSE, audit log) ise
+                    <strong>EventEmitter</strong> üzerinden servis katmanından ayrılmış biçimde çalışır.
+                </c-callout>
+
+                <c-pagination-nav
+                    prev-label="Sınıf Hiyerarşisi" prev-href="arch-classes.html"
+                    next-label="Katman Mimarisi"    next-href="arch-layers.html">
+                </c-pagination-nav>
+            </div>
+
+            <c-toc selector=".page-inner h2"></c-toc>
+        </div>
+    </main>
+
+    <c-back-to-top></c-back-to-top>
+
+    <script src="../assets/js/project.js"></script>
+    <script src="../components/c-theme-toggle/c-theme-toggle.js"></script>
+    <script src="../components/c-navbar/c-navbar.js"></script>
+    <script src="../components/c-sidebar/c-sidebar.js"></script>
+    <script src="../components/c-breadcrumb/c-breadcrumb.js"></script>
+    <script src="../components/c-callout/c-callout.js"></script>
+    <script src="../components/c-badge/c-badge.js"></script>
+    <script src="../components/c-toc/c-toc.js"></script>
+    <script src="../components/c-pagination-nav/c-pagination-nav.js"></script>
+    <script src="../components/c-read-progress/c-read-progress.js"></script>
+    <script src="../components/c-back-to-top/c-back-to-top.js"></script>
+    <script src="../components/c-heading-anchor/c-heading-anchor.js"></script>
+    <script src="../components/c-print-button/c-print-button.js"></script>
+    <script src="../components/c-tooltip/c-tooltip.js"></script>
+</body>
+
+</html>
