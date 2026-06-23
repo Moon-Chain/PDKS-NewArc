@@ -58,6 +58,53 @@ export class LeaveService extends BaseService {
     });
   }
 
+  async createBackdated(
+    companyId: string,
+    actorId:   string,
+    data: {
+      userId:     string;
+      start_date: string;
+      end_date:   string;
+      reason:     string;
+      type:       string;
+    }
+  ): Promise<LeaveRow> {
+    const s = new Date(data.start_date);
+    const e = new Date(data.end_date);
+    if (isNaN(s.getTime()) || isNaN(e.getTime())) throw new AppError('Geçersiz tarih', 400);
+    if (e < s) throw new AppError('Bitiş tarihi başlangıç tarihinden önce olamaz', 400);
+    if (!['annual', 'report', 'excuse'].includes(data.type)) throw new AppError('Geçersiz izin türü', 400);
+    if (!data.reason?.trim()) throw new AppError('Açıklama zorunlu', 400);
+
+    const days = this._countDays(data.start_date, data.end_date);
+    const user = await this.userRepo.findById(data.userId, companyId);
+    if (!user) throw new AppError('Kullanıcı bulunamadı', 404);
+
+    if (data.type === 'annual' && user.leave_balance < days) {
+      throw new AppError(
+        `Yetersiz izin bakiyesi. Mevcut: ${user.leave_balance} gün, Talep: ${days} gün`, 422
+      );
+    }
+
+    const leave = await this.leaveRepo.createLeave({
+      company_id: companyId,
+      user_id:    data.userId,
+      user_name:  user.name,
+      manager_id: user.manager_id ?? actorId,
+      start_date: data.start_date,
+      end_date:   data.end_date,
+      days,
+      reason:     data.reason.trim(),
+      type:       data.type,
+    });
+
+    // Anında onayla — admin tarafından girilen geçmiş izin
+    const approved = await this.leaveRepo.updateStatus(leave.id, companyId, 'approved');
+    if (data.type === 'annual') await this._deductBalance(data.userId, companyId, days);
+
+    return approved ?? leave;
+  }
+
   async list(
     companyId: string,
     role:      string,

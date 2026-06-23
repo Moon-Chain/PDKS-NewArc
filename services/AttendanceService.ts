@@ -88,7 +88,9 @@ export class AttendanceService extends BaseService {
       offline_queued: isOffline,
     }, companyId);
 
-    emitter.emit('attendance:checkin', { userId, userName, type, companyId });
+    const managerId = await this.userRepo?.findById(userId, companyId)
+      .then(u => u?.manager_id ?? null).catch(() => null) ?? null;
+    emitter.emit('attendance:checkin', { userId, userName, type, companyId, managerId });
 
     // Çıkış ise otomatik mesai kontrolü — PDKS-main mantığı
     if (type === 'out' && log.status === 'success') {
@@ -184,11 +186,12 @@ export class AttendanceService extends BaseService {
   }
 
   async getTodayStats(companyId: string) {
-    const settings = await this.settingsRepo.get(companyId);
+    const settings   = await this.settingsRepo.get(companyId);
     const shiftStart = settings.shift_start
-      ? String(settings.shift_start).slice(0,5)
+      ? String(settings.shift_start).slice(0, 5)
       : '09:00';
-    return this.attendanceRepo.getTodayStats(companyId, shiftStart);
+    const tolerance  = settings.rounding_threshold_minutes ?? 0;
+    return this.attendanceRepo.getTodayStats(companyId, shiftStart, tolerance);
   }
 
   async getPendingManual(companyId: string) {

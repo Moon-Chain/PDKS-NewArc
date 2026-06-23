@@ -7,7 +7,7 @@ const ROLE_PERMISSIONS: Record<string, Set<string>> = {
   mudur: new Set([
     'user:view', 'user:manage',
     'attendance:view', 'attendance:manage',
-    'leave:view', 'leave:approve',
+    'leave:view', 'leave:approve', 'leave:backdate',
     'overtime:view', 'overtime:approve',
     'settings:view',
     'notification:view',

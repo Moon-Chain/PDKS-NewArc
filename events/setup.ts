@@ -120,4 +120,24 @@ emitter.on('overtime:rejected', async (data: {
   }).catch(err => logger.error('notif_overtime_rejected', { error: err.message }));
 });
 
+// Giriş/Çıkış → yöneticiye bildirim
+emitter.on('attendance:checkin', async (data: {
+  userId:    string;
+  userName:  string;
+  type:      'in' | 'out';
+  companyId: string;
+  managerId: string | null;
+}) => {
+  if (!data.managerId) return;
+  const label = data.type === 'in' ? 'giriş yaptı' : 'çıkış yaptı';
+  await notificationService.notify({
+    companyId: data.companyId,
+    userId:    data.managerId,
+    title:     `Personel ${data.type === 'in' ? 'Giriş' : 'Çıkış'} Bildirimi`,
+    message:   `${data.userName} az önce ${label}.`,
+    type:      'info',
+    link:      '/movements',
+  }).catch(err => logger.error('notif_attendance_checkin', { error: err.message }));
+});
+
 logger.info('Event emitter hazır (bildirim sistemi aktif)');

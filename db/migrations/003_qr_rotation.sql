@@ -1,0 +1,2 @@
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS qr_rotate_interval_hours INT DEFAULT 0;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS qr_last_rotated_at TIMESTAMPTZ DEFAULT NOW();

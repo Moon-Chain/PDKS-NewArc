@@ -5,6 +5,7 @@ import { LeaveService } from '../../services/LeaveService.js';
 import { LeaveRepository } from '../../repositories/LeaveRepository.js';
 import { UserRepository } from '../../repositories/UserRepository.js';
 import { emitter } from '../../events/emitter.js';
+import { AppError } from '../../core/AppError.js';
 import type { Request, Response, NextFunction } from 'express';
 
 const router  = Router();
@@ -40,6 +41,19 @@ router.post('/', requirePermission('leave:request'), async (req: Request, res: R
       days:      leave.days,
       type:      leave.type,
     });
+    res.status(201).json({ success: true, leave });
+  } catch (err) { next(err); }
+});
+
+// POST /api/v1/leaves/backdate — geçmiş tarihli izin (admin/mudur, anında onaylı)
+router.post('/backdate', requirePermission('leave:backdate'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id: actorId, company_id: companyId } = req.user!;
+    const { userId, start_date, end_date, reason, type } = req.body as {
+      userId: string; start_date: string; end_date: string; reason: string; type: string;
+    };
+    if (!userId) throw new AppError('Personel seçimi zorunlu', 400);
+    const leave = await service.createBackdated(companyId, actorId, { userId, start_date, end_date, reason, type });
     res.status(201).json({ success: true, leave });
   } catch (err) { next(err); }
 });

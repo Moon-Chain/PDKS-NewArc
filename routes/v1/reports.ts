@@ -28,19 +28,20 @@ router.get('/excel/attendance', requireAuth, async (req, res, next) => {
   try {
     const { role, company_id: companyId, id: selfId } = req.user!;
 
-    const month  = (req.query.month as string) || new Date().toISOString().slice(0, 7);
-    const userId = req.query.userId as string | undefined;
+    if (role === 'personel') throw new AppError('Yetersiz yetki', 403);
 
-    // Personel sadece kendi raporunu indirebilir
-    if (role === 'personel' && userId && userId !== selfId) {
-      throw new AppError('Yetersiz yetki', 403);
-    }
+    const month     = req.query.month     as string | undefined;
+    const startDate = req.query.startDate as string | undefined;
+    const endDate   = req.query.endDate   as string | undefined;
+    const userId    = req.query.userId    as string | undefined;
 
-    const targetUser = role === 'personel' ? selfId : userId;
+    const targetUser = role === 'takim_lideri' ? (userId ?? selfId) : userId;
 
     const buffer = await service.generateAttendanceReport({
       companyId,
-      month,
+      month:     month || (startDate ? undefined : new Date().toISOString().slice(0, 7)),
+      startDate,
+      endDate,
       userId: targetUser,
     });
 

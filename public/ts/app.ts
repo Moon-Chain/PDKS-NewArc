@@ -77,12 +77,18 @@ async function init() {
   if (state.get('user')) eventStream.connect();
 
   const origNavigate = router.navigate.bind(router);
+  const setRouteAttr = (path: string) => {
+    document.body.dataset.route = path.split('?')[0];
+  };
+
   router.navigate = async (path: string) => {
     await origNavigate(path);
+    setRouteAttr(path);
     if (currentNav) currentNav.setActive(path);
   };
 
   await router._render(location.pathname);
+  setRouteAttr(location.pathname);
   if (currentNav) currentNav.setActive(location.pathname);
 }
 

@@ -116,18 +116,18 @@
 .topbar-logout-btn {
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  color: var(--text-muted);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   flex-shrink: 0;
 }
 .topbar-logout-btn:hover {
-  background: var(--error-bg);
-  color: var(--error-text);
-  border-color: var(--error-border);
+  background: var(--error-text);
+  color: #fff;
+  border-color: var(--error-text);
 }
 .topbar-logout-btn:active { transform: scale(0.93); }
 
@@ -539,9 +539,9 @@
 .action-btn-in  { background: #059669; }
 .action-btn-in:hover:not(:disabled)  { background: #10b981; }
 
-/* PDKS-main: bg-zinc-900 hover:bg-zinc-800 */
-.action-btn-out { background: #18181b; }
-.action-btn-out:hover:not(:disabled) { background: #27272a; }
+/* Çıkış butonu — kırmızı */
+.action-btn-out { background: #dc2626; }
+.action-btn-out:hover:not(:disabled) { background: #ef4444; }
 
 /* PDKS-main: absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 */
 .action-btn-glow {
@@ -635,6 +635,17 @@
   display: flex; align-items: center; justify-content: center;
   min-height: 100vh; padding: var(--space-4);
 }
+
+/* /qr rotasında topbar + bottom nav gizle, tam ekran QR */
+body[data-route="/qr"] #header-container,
+body[data-route="/qr"] #nav-container { display: none !important; }
+body[data-route="/qr"] #app {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+body[data-route="/qr"] .qr-display-page { min-height: 100dvh; padding: var(--space-6); }
+body[data-route="/qr"] .qr-display-card { max-width: 440px; }
+body[data-route="/qr"] .qr-canvas-wrap canvas { width: 340px !important; height: 340px !important; }
 .qr-display-card {
   background: var(--bg-secondary); border: 1px solid var(--border-primary);
   border-radius: 28px; padding: var(--space-8);
@@ -1536,10 +1547,34 @@ select.field-input { cursor: pointer; background-image: url("data:image/svg+xml,
   padding: 7px 14px; border-radius: 10px;
   background: #059669; color: #fff;
   font-size: 13px; font-weight: 700; border: none; cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s; white-space: nowrap;
 }
 .mv-excel-btn:hover { background: #10b981; }
+.mv-excel-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 @media (max-width: 480px) { .mv-excel-label { display: none; } }
+
+/* Toplu indirme kartı */
+.mv-bulk-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: rgba(249,115,22,0.06);
+  border: 1px solid rgba(249,115,22,0.18);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.mv-bulk-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600;
+  color: var(--color-muted, #71717a);
+  flex: 1; min-width: 130px;
+}
+.mv-bulk-label svg { flex-shrink: 0; color: var(--accent); }
+.mv-bulk-controls { display: flex; align-items: center; gap: 8px; }
+.mv-bulk-month {
+  width: 148px !important;
+  border-color: rgba(249,115,22,0.25) !important;
+}
+.mv-bulk-month:focus { border-color: var(--accent) !important; }
 
 /* Ay navigasyon */
 .mv-month-nav { display: flex; align-items: center; gap: 4px; }
@@ -1561,10 +1596,10 @@ select.field-input { cursor: pointer; background-image: url("data:image/svg+xml,
   color-scheme: dark; /* native picker'ı dark temaya uyarlar */
 }
 .mv-month-input:focus { outline: none; border-color: var(--accent); }
-/* Takvim ikonunu beyaz/görünür yap */
+/* Takvim ikonunu beyaz yap — dark temada siyah ikon görünmez */
 .mv-month-input::-webkit-calendar-picker-indicator {
-  filter: invert(0.8) brightness(1.2);
-  cursor: pointer; opacity: 0.7; margin-left: 2px;
+  filter: brightness(0) invert(1);
+  cursor: pointer; opacity: 0.5; margin-left: 4px;
 }
 .mv-month-input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
@@ -1607,10 +1642,96 @@ select.field-input { cursor: pointer; background-image: url("data:image/svg+xml,
 .mv-back-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
 
 /* Personel listesi — PDKS-main: grid-cols-1 md:grid-cols-2 gap-4 */
+.mv-search-wrap {
+  position: relative; display: flex; align-items: center;
+  margin-bottom: 14px;
+}
+.mv-search-ico {
+  position: absolute; left: 12px;
+  color: var(--text-muted); display: flex; pointer-events: none;
+}
+.mv-search-input {
+  width: 100%; border-radius: 14px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  padding: 10px 14px 10px 38px;
+  color: var(--text-primary); font-size: 14px;
+  transition: border-color 0.15s;
+}
+.mv-search-input:focus { outline: none; border-color: var(--accent); }
+.mv-search-input::placeholder { color: var(--text-muted); }
+.mv-search-input::-webkit-search-cancel-button { cursor: pointer; }
+
+.mv-group-label {
+  font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 16px 2px 8px;
+}
+.mv-group-label:first-child { padding-top: 4px; }
+
+/* ===== ALPHABET SCROLL BAR ===== */
+.mv-alpha-bar {
+  position: fixed;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 2px;
+  gap: 2px;
+  z-index: 50;
+  user-select: none;
+  touch-action: none;
+  -webkit-user-select: none;
+}
+
+.mv-alpha-letter {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  width: 18px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.08s, background 0.08s;
+}
+
+.mv-alpha-letter--active {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.mv-alpha-bubble {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 88px;
+  height: 88px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 52px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  pointer-events: none;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
 .mv-user-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  margin-bottom: 4px;
 }
 @media (max-width: 560px) { .mv-user-grid { grid-template-columns: 1fr; } }
 
@@ -2397,6 +2518,13 @@ select.field-input { cursor: pointer; background-image: url("data:image/svg+xml,
    PASSWORD MODAL — PDKS-main birebir
    =================================================== */
 /* fixed inset-0 z-[250] flex items-center justify-center p-4 / bg-black/80 backdrop-blur-sm */
+.lv-bd-modal {
+  width: 100%; max-width: 440px;
+  border-radius: 24px; border: 1px solid rgba(255,255,255,0.07);
+  background: #09090b; padding: 28px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+}
+
 .pw-overlay {
   position: fixed; inset: 0; z-index: 9200;
   display: flex; align-items: center; justify-content: center;

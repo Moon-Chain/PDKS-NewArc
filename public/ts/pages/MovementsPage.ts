@@ -35,7 +35,8 @@ const I_FILE  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" str
 const I_LOGIN = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`;
 const I_EDIT  = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
 const I_TRASH = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
-const I_X     = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const I_X      = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const I_SEARCH = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
 
 // ── Takvim builder ────────────────────────────────────────────
 function buildCalendar(
@@ -193,6 +194,7 @@ Alpine.data('movementsPage', () => ({
   role:         '',
   view:         'list' as 'list' | 'detail',
   users:        [] as SimpleUser[],
+  userSearch:   '',
   selectedUser: null as SimpleUser | null,
   allRows:      [] as AttendanceRow[],
   overtimeRows: [] as OvertimeRow[],
@@ -200,8 +202,11 @@ Alpine.data('movementsPage', () => ({
   month:        currentMonth(),
   listPage:     1,
   loading:      false,
-  excelLoading: false,
+  excelLoading:  false,
+  bulkMonth:     currentMonth(),
   showManualModal: false,
+  alphaCurrent: '' as string,
+  alphaDragging: false,
   manualForm: {
     date:   '',
     time:   '',
@@ -228,6 +233,25 @@ Alpine.data('movementsPage', () => ({
   // ── Computed ──
   get isPriv(): boolean {
     return this.role === 'admin' || this.role === 'mudur';
+  },
+  get filteredUsers(): SimpleUser[] {
+    const q = this.userSearch.trim().toLocaleLowerCase('tr');
+    if (!q) return this.users;
+    return this.users.filter((u: SimpleUser) =>
+      u.name.toLocaleLowerCase('tr').includes(q) ||
+      u.personnel_id.toLocaleLowerCase('tr').includes(q)
+    );
+  },
+  get groupedUsers(): { letter: string; users: SimpleUser[] }[] {
+    const map = new Map<string, SimpleUser[]>();
+    for (const u of this.filteredUsers) {
+      const letter = (u.name[0] ?? '#').toLocaleUpperCase('tr');
+      if (!map.has(letter)) map.set(letter, []);
+      map.get(letter)!.push(u);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b, 'tr'))
+      .map(([letter, users]) => ({ letter, users }));
   },
   get listRows(): AttendanceRow[] {
     const s = (this.listPage - 1) * LIST_PER_PAGE;
@@ -338,7 +362,29 @@ Alpine.data('movementsPage', () => ({
     if (this.listPage < this.totalPages) this.listPage++;
   },
 
-  // ── Excel indirme ──
+  // ── Toplu Excel (tüm personel, kişi başı sheet) ──
+  async exportBulkExcel() {
+    this.excelLoading = true;
+    try {
+      const params = new URLSearchParams({ month: this.bulkMonth });
+      const res = await fetch(`/api/v1/reports/excel/attendance?${params}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Rapor alınamadı');
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = Object.assign(document.createElement('a'), {
+        href: url, download: `devam-raporu-tum-${this.bulkMonth}.xlsx`,
+      });
+      a.click();
+      URL.revokeObjectURL(url);
+      Toast.show('Toplu Excel indirildi', 'success');
+    } catch (err: unknown) {
+      Toast.show(err instanceof Error ? err.message : 'İndirilemedi', 'error');
+    } finally {
+      this.excelLoading = false;
+    }
+  },
+
+  // ── Tekil Excel indirme ──
   async exportExcel() {
     this.excelLoading = true;
     try {
@@ -598,6 +644,33 @@ Alpine.data('movementsPage', () => ({
     });
   },
 
+  // ── Alphabet scroll bar ──
+  _mountAlphaBar(el: HTMLElement) {
+    // passive:false zorunlu — yoksa tarayıcı preventDefault() çağrısını yok sayar ve scroll devam eder
+    el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+    el.addEventListener('touchmove',  (e) => e.preventDefault(), { passive: false });
+  },
+
+  _alphaHit(e: Event) {
+    const pe  = e as PointerEvent;
+    const bar = pe.currentTarget as HTMLElement;
+    if (pe.type === 'pointerdown') bar.setPointerCapture(pe.pointerId);
+    const rect = bar.getBoundingClientRect();
+    const y    = Math.max(0, Math.min(rect.height, pe.clientY - rect.top));
+    const letters = (this.groupedUsers as { letter: string }[]).map(g => g.letter);
+    if (!letters.length) return;
+    const idx    = Math.min(letters.length - 1, Math.floor((y / rect.height) * letters.length));
+    const letter = letters[idx];
+    if (letter === this.alphaCurrent) return;
+    this.alphaCurrent = letter;
+    if ('vibrate' in navigator) navigator.vibrate(8);
+    const el = document.getElementById('mv-group-' + letter);
+    if (el) {
+      const top = window.scrollY + el.getBoundingClientRect().top - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+    }
+  },
+
   // ── Manuel Kayıt / Düzenleme Modalı (overlay DOM) ──
   _openManualModal(dateKey: string, existingRow?: AttendanceRow) {
     const isEdit   = !!existingRow;
@@ -734,28 +807,77 @@ export class MovementsPage extends BasePage {
         <!-- ═══════════════ PERSONEL LİSTESİ ═══════════════ -->
         <template x-if="view === 'list'">
           <div>
-            <div class="page-header" style="margin-bottom:20px">
+            <div class="page-header" style="margin-bottom:16px">
               <h2 class="page-title">${I_CAL} Hareket Kontrol</h2>
             </div>
-            <div class="mv-user-grid">
-              <template x-if="users.length === 0">
-                <p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:48px 0">
-                  Personel bulunamadı.
-                </p>
-              </template>
-              <template x-for="u in users" :key="u.id">
-                <button class="mv-user-card" @click="selectUser(u.id)">
-                  <div style="display:flex;align-items:center;gap:12px">
-                    <div class="mv-user-avatar" x-text="u.name[0]?.toUpperCase() ?? '?'"></div>
-                    <div style="text-align:left">
-                      <p style="font-weight:700;font-size:14px;color:var(--text-primary)" x-text="u.name"></p>
-                      <p style="font-size:12px;color:var(--text-muted)" x-text="u.personnel_id"></p>
-                    </div>
-                  </div>
-                  <span style="color:rgba(255,255,255,0.2);flex-shrink:0">${I_CHEVR}</span>
+            <!-- Toplu Excel indirme -->
+            <div class="mv-bulk-bar">
+              <div class="mv-bulk-label">
+                ${I_DOWN} Tüm personeli Excel'e aktar
+              </div>
+              <div class="mv-bulk-controls">
+                <input class="mv-month-input mv-bulk-month" type="month"
+                  x-model="bulkMonth"
+                  title="Rapor ayı seç" />
+                <button class="mv-excel-btn" :disabled="excelLoading" @click="exportBulkExcel()">
+                  ${I_DOWN}
+                  <span x-text="excelLoading ? 'İndiriliyor...' : 'Toplu Excel'"></span>
                 </button>
+              </div>
+            </div>
+
+            <div class="mv-search-wrap">
+              <span class="mv-search-ico">${I_SEARCH}</span>
+              <input
+                class="mv-search-input"
+                type="search"
+                placeholder="Ad veya personel ID ara..."
+                x-model="userSearch"
+                autocomplete="off"
+              />
+            </div>
+            <template x-if="filteredUsers.length === 0">
+              <p style="text-align:center;color:var(--text-muted);padding:48px 0">
+                Personel bulunamadı.
+              </p>
+            </template>
+            <template x-for="group in groupedUsers" :key="group.letter">
+              <div :id="'mv-group-' + group.letter">
+                <div class="mv-group-label" x-text="group.letter"></div>
+                <div class="mv-user-grid">
+                  <template x-for="u in group.users" :key="u.id">
+                    <button class="mv-user-card" @click="selectUser(u.id)">
+                      <div style="display:flex;align-items:center;gap:12px">
+                        <div class="mv-user-avatar" x-text="u.name[0]?.toUpperCase() ?? '?'"></div>
+                        <div style="text-align:left">
+                          <p style="font-weight:700;font-size:14px;color:var(--text-primary)" x-text="u.name"></p>
+                          <p style="font-size:12px;color:var(--text-muted)" x-text="u.personnel_id"></p>
+                        </div>
+                      </div>
+                      <span style="color:rgba(255,255,255,0.2);flex-shrink:0">${I_CHEVR}</span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <!-- Alphabet scroll bar -->
+            <div class="mv-alpha-bar"
+              x-init="_mountAlphaBar($el)"
+              @pointerdown.prevent="alphaDragging=true;_alphaHit($event)"
+              @pointermove="if(alphaDragging)_alphaHit($event)"
+              @pointerup="alphaDragging=false;alphaCurrent=''"
+              @pointercancel="alphaDragging=false;alphaCurrent=''">
+              <template x-for="g in groupedUsers" :key="g.letter">
+                <span class="mv-alpha-letter"
+                  :class="alphaCurrent===g.letter?'mv-alpha-letter--active':''"
+                  x-text="g.letter"></span>
               </template>
             </div>
+
+            <!-- Alphabet bubble (merkez göstergesi) -->
+            <div class="mv-alpha-bubble" x-show="alphaCurrent" x-cloak x-text="alphaCurrent"></div>
+
           </div>
         </template>
 
@@ -774,10 +896,12 @@ export class MovementsPage extends BasePage {
                 <div></div>
               </template>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <button class="mv-excel-btn" :disabled="excelLoading" @click="exportExcel()">
-                  ${I_DOWN}
-                  <span class="mv-excel-label" x-text="excelLoading ? 'İndiriliyor...' : 'Excel\\'e Aktar'"></span>
-                </button>
+                <template x-if="isPriv">
+                  <button class="mv-excel-btn" :disabled="excelLoading" @click="exportExcel()">
+                    ${I_DOWN}
+                    <span class="mv-excel-label" x-text="excelLoading ? 'İndiriliyor...' : 'Excel\\'e Aktar'"></span>
+                  </button>
+                </template>
                 <div class="mv-month-nav">
                   <button class="mv-month-btn" @click="shiftMonth(-1)">${I_PREV}</button>
                   <input class="mv-month-input" type="month"

@@ -9,6 +9,8 @@ export interface SettingsRow {
   rounding_threshold_minutes: number;
   shift_start:                string;
   shift_end:                  string;
+  qr_rotate_interval_hours:   number;
+  qr_last_rotated_at:         string;
   updated_at:                 string;
 }
 
@@ -43,5 +45,27 @@ export class SettingsRepository {
       [...values, companyId]
     );
     return rows[0];
+  }
+
+  async rotateQrSecret(companyId: string, newSecret: string): Promise<void> {
+    // qr_secret her zaman güncellenir
+    await db.query(
+      `UPDATE settings SET qr_secret = $1, updated_at = NOW() WHERE company_id = $2`,
+      [newSecret, companyId]
+    );
+    // qr_last_rotated_at sadece migration 003 çalıştırıldıysa güncellenir
+    await db.query(
+      `UPDATE settings SET qr_last_rotated_at = NOW() WHERE company_id = $1`,
+      [companyId]
+    ).catch(() => {});
+  }
+
+  async findCompaniesNeedingRotation(): Promise<{ company_id: string }[]> {
+    const { rows } = await db.query<{ company_id: string }>(
+      `SELECT company_id FROM settings
+       WHERE qr_rotate_interval_hours > 0
+         AND NOW() - qr_last_rotated_at >= (qr_rotate_interval_hours * INTERVAL '1 hour')`
+    );
+    return rows;
   }
 }

@@ -179,10 +179,28 @@ Alpine.data('homePage', () => ({
 
   _bindSse() {
     const unsub = bus.on('sse:attendance', async (data: unknown) => {
-      const profile = state.get('profile') as { id: string } | null;
-      if ((data as { userId: string }).userId === profile?.id) await this.loadData();
+      const profile     = state.get('profile') as { id: string } | null;
+      const eventUserId = (data as { userId: string }).userId;
+
+      if (eventUserId === profile?.id) {
+        // Kendi kaydı → durum + loglar + stats
+        await this.loadData();
+      } else if (this.role === 'admin' || this.role === 'mudur') {
+        // Başka personelin kaydı → sadece istatistikleri yenile
+        try { this.stats = await api.get<DayStats>('/api/v1/attendance/stats'); }
+        catch { /* ignore */ }
+      }
     });
     _cleanups.push(unsub as () => void);
+
+    // 60 sn fallback polling — SSE kesilirse veya izin değişimleri için
+    if (this.role === 'admin' || this.role === 'mudur') {
+      const pollTimer = setInterval(async () => {
+        try { this.stats = await api.get<DayStats>('/api/v1/attendance/stats'); }
+        catch { /* ignore */ }
+      }, 60_000);
+      _cleanups.push(() => clearInterval(pollTimer));
+    }
   },
 
   openStatsModal(label: string, people: Array<{name:string;detail:string}>, colorKey: string) {
@@ -271,18 +289,22 @@ export class HomePage extends BasePage {
           </div>
         </div>
 
-        <!-- Giriş / Çıkış butonları -->
+        <!-- Giriş / Çıkış butonları — son duruma göre tek buton -->
         <div class="action-grid">
-          <button class="action-btn action-btn-in" :disabled="!buttonsEnabled" @click="checkIn('in')" type="button">
-            <div class="action-btn-glow"></div>
-            ${ICON_LOGIN}
-            <span>Giriş Yap</span>
-          </button>
-          <button class="action-btn action-btn-out" :disabled="!buttonsEnabled" @click="checkIn('out')" type="button">
-            <div class="action-btn-glow"></div>
-            ${ICON_LOGOUT}
-            <span>Çıkış Yap</span>
-          </button>
+          <template x-if="!status.isInside">
+            <button class="action-btn action-btn-in" style="grid-column:1/-1" :disabled="!buttonsEnabled" @click="checkIn('in')" type="button">
+              <div class="action-btn-glow"></div>
+              ${ICON_LOGIN}
+              <span>Giriş Yap</span>
+            </button>
+          </template>
+          <template x-if="status.isInside">
+            <button class="action-btn action-btn-out" style="grid-column:1/-1" :disabled="!buttonsEnabled" @click="checkIn('out')" type="button">
+              <div class="action-btn-glow"></div>
+              ${ICON_LOGOUT}
+              <span>Çıkış Yap</span>
+            </button>
+          </template>
         </div>
 
         <!-- Admin istatistik kartları -->

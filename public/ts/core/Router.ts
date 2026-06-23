@@ -22,6 +22,11 @@ export class Router {
     await this._render(path);
   }
 
+  prefetch(path: string) {
+    const loader = this.routes[path];
+    if (loader) loader().catch(() => {});
+  }
+
   async _render(path: string) {
     if (path.length > 1 && path.endsWith('/')) {
       path = path.slice(0, -1);

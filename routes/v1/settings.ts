@@ -26,10 +26,18 @@ router.patch('/', requirePermission('settings:view'), async (req: Request, res: 
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/settings/generate-secret — yeni QR sırrı üret
+// POST /api/v1/settings/generate-secret — yeni QR sırrı üret (kaydetmez)
 router.post('/generate-secret', requirePermission('settings:view'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const secret = service.generateSecret();
+    res.json({ success: true, secret });
+  } catch (err) { next(err); }
+});
+
+// POST /api/v1/settings/rotate-qr — QR sırrını üret ve DB'ye kaydet
+router.post('/rotate-qr', requirePermission('settings:view'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const secret = await service.rotateQrSecret(req.user!.company_id);
     res.json({ success: true, secret });
   } catch (err) { next(err); }
 });

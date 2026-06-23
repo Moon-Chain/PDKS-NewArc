@@ -57,10 +57,15 @@ export class BottomNav extends BaseComponent {
     this.setActive(location.pathname);
 
     this.el?.querySelectorAll('.bottom-nav-item').forEach((btn) => {
+      const path = (btn as HTMLElement).dataset.path!;
+      const win = window as unknown as { router?: { navigate: (p: string) => void; prefetch?: (p: string) => void } };
+
+      btn.addEventListener('mouseenter', () => win.router?.prefetch?.(path), { passive: true } as AddEventListenerOptions);
+      btn.addEventListener('touchstart', () => win.router?.prefetch?.(path), { passive: true, once: true } as AddEventListenerOptions);
+
       btn.addEventListener('click', () => {
         if (navigator.vibrate) navigator.vibrate(50);
-        const path = (btn as HTMLElement).dataset.path!;
-        (window as unknown as { router?: { navigate: (p: string) => void } }).router?.navigate(path);
+        win.router?.navigate(path);
       });
     });
   }

@@ -29,6 +29,10 @@ import adminRoute         from './routes/v1/admin/index.js';
 // Event dinleyicilerini başlat
 import './events/setup.js';
 
+// Scheduled jobs
+import { startAbsentReminder } from './jobs/absentReminder.js';
+import { startQrRotation }    from './jobs/qrRotation.js';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3000');
 
@@ -193,6 +197,8 @@ app.use((err: unknown, req: express.Request, res: express.Response, _next: expre
 // Graceful shutdown
 const server = app.listen(PORT, () => {
   logger.info(`PDKS çalışıyor → http://localhost:${PORT}`);
+  startAbsentReminder();
+  startQrRotation();
 });
 
 async function shutdown(signal: string) {

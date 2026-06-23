@@ -40,7 +40,7 @@ export class AttendanceRepository extends BaseRepository<AttendanceRow> {
     return rows;
   }
 
-  async getTodayStats(companyId: string, shiftStart: string): Promise<{
+  async getTodayStats(companyId: string, shiftStart: string, lateToleranceMin = 0): Promise<{
     present:     number; presentList:  Array<{id:string;name:string;detail:string}>;
     onLeave:     number; onLeaveList:  Array<{id:string;name:string;detail:string}>;
     late:        number; lateList:     Array<{id:string;name:string;detail:string}>;
@@ -86,8 +86,13 @@ export class AttendanceRepository extends BaseRepository<AttendanceRow> {
     const presentIds = new Set<string>();
     lastAction.forEach((type, uid) => { if (type === 'in') presentIds.add(uid); });
 
+    // Tolerans dahil geç sayılma eşiği — örn. shiftStart "09:00" + 10 dk = "09:10"
+    const [sh, sm] = shiftStart.split(':').map(Number);
+    const lateAfterMin = sh * 60 + sm + lateToleranceMin;
+    const lateAfter = `${String(Math.floor(lateAfterMin / 60)).padStart(2, '0')}:${String(lateAfterMin % 60).padStart(2, '0')}`;
+
     const lateIds = new Set<string>();
-    firstIn.forEach((time, uid) => { if (time > shiftStart) lateIds.add(uid); });
+    firstIn.forEach((time, uid) => { if (time > lateAfter) lateIds.add(uid); });
 
     const userMap = new Map(users.map(u => [u.id, u]));
     const mk = (uid: string, detail: string) => ({ id: uid, name: userMap.get(uid)?.name ?? uid, detail });

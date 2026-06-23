@@ -9,13 +9,22 @@ const ICON_QR     = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"
 const ICON_WIFI   = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`;
 const ICON_X_CIRC= `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
 
+const FREEZE_MS   = 8_000; // Bu kadar süre frame gelmezse kamerayı reset et
+const FREEZE_CHECK= 2_000; // Freeze kontrolü aralığı
+
 export class QRScanner extends BaseComponent {
   private onResult: QRResult;
   private onCancel: QRCancel;
   private type:     'in' | 'out';
+
   private stream:   MediaStream | null = null;
   private raf:      number | null = null;
   private stopped   = false;
+  private _starting = false;
+
+  private _lastFrameMs  = 0;
+  private _freezeTimer: ReturnType<typeof setInterval> | null = null;
+  private _visibilityHandler: (() => void) | null = null;
 
   constructor(onResult: QRResult, onCancel: QRCancel, type: 'in' | 'out' = 'in') {
     super({});
@@ -26,12 +35,10 @@ export class QRScanner extends BaseComponent {
 
   template(): string {
     const label = this.type === 'in' ? 'Giriş' : 'Çıkış';
-
     return `
       <div class="qr-scanner-overlay">
         <div class="qr-scanner-wrap">
 
-          <!-- PDKS-main: başlık — kart dışında, beyaz metin -->
           <div class="qr-scanner-topbar">
             <h2 class="qr-scanner-title">
               ${ICON_QR} ${label} Taraması
@@ -41,14 +48,11 @@ export class QRScanner extends BaseComponent {
             </button>
           </div>
 
-          <!-- PDKS-main: kamera kartı — rounded-3xl border border-zinc-800 bg-zinc-950 p-2 -->
           <div class="qr-scanner-box">
-            <!-- PDKS-main: relative aspect-square overflow-hidden rounded-2xl bg-zinc-900 flex items-center justify-center -->
             <div class="qr-video-wrapper">
               <video class="qr-video" autoplay playsinline muted></video>
               <canvas class="qr-canvas" style="display:none"></canvas>
 
-              <!-- Hata durumu -->
               <div class="qr-error-state" style="display:none">
                 <div class="qr-error-icon">${ICON_CAM_OFF}</div>
                 <h3 class="qr-error-title">Kamera Engellendi</h3>
@@ -58,7 +62,6 @@ export class QRScanner extends BaseComponent {
                 <button class="qr-reload-btn" id="qr-reload-btn">İzin Verdim, Yenile</button>
               </div>
 
-              <!-- PDKS-main: 4 köşe bracket + tarama çizgisi — kamera açık olmasa da görünür -->
               <div class="qr-corners" aria-hidden="true">
                 <div class="qr-corner qr-corner--tl"></div>
                 <div class="qr-corner qr-corner--tr"></div>
@@ -68,11 +71,9 @@ export class QRScanner extends BaseComponent {
               <div class="qr-scan-line" aria-hidden="true"></div>
             </div>
 
-            <!-- PDKS-main: alt hint -->
             <p class="qr-hint">QR Kodu Merkeze Getirin</p>
           </div>
 
-          <!-- PDKS-main: uyarı — kart dışında, orange tinted -->
           <div class="qr-scanner-warning">
             ${ICON_WIFI}
             <span>Sadece iş yeri Wi-Fi ağına bağlıyken tarama yapabilirsiniz.</span>
@@ -83,7 +84,6 @@ export class QRScanner extends BaseComponent {
   }
 
   afterMount() {
-    // Header'ı gizle — scanner overlay'in üstünde kalmasın
     const header = document.getElementById('header-container');
     if (header) header.style.display = 'none';
 
@@ -95,6 +95,17 @@ export class QRScanner extends BaseComponent {
     };
     const reloadBtn = this.el.querySelector('#qr-reload-btn') as HTMLElement | null;
     if (reloadBtn) reloadBtn.onclick = () => location.reload();
+
+    // Tab gizlenince stream'i serbest bırak, görününce yeniden başlat
+    this._visibilityHandler = () => {
+      if (document.visibilityState === 'hidden') {
+        this._stopStream();
+      } else if (!this.stopped) {
+        this._restartCamera();
+      }
+    };
+    document.addEventListener('visibilitychange', this._visibilityHandler);
+
     this._startCamera();
   }
 
@@ -103,25 +114,45 @@ export class QRScanner extends BaseComponent {
     if (header) header.style.display = '';
   }
 
+  // Sadece stream + RAF durdurur — scanner'ı tamamen kapatmaz
+  private _stopStream() {
+    if (this.raf !== null) { cancelAnimationFrame(this.raf); this.raf = null; }
+    this.stream?.getTracks().forEach(t => t.stop());
+    this.stream = null;
+    if (this._freezeTimer) { clearInterval(this._freezeTimer); this._freezeTimer = null; }
+  }
+
+  private async _restartCamera() {
+    this._stopStream();
+    if (this.stopped) return;
+    // iOS'ta kısa bekleme olmadan yeni getUserMedia başarısız olabiliyor
+    await new Promise<void>(r => setTimeout(r, 400));
+    if (this.stopped) return;
+    await this._startCamera();
+  }
+
   private async _startCamera() {
+    if (this._starting || this.stopped) return;
+    this._starting = true;
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } },
       });
-      // Kamera açılırken unmount olmuş olabilir
-      if (this.stopped || !this.el) { this._stop(); return; }
+      if (this.stopped || !this.el) { this._stopStream(); return; }
       const video = this.el.querySelector('.qr-video') as HTMLVideoElement | null;
-      if (!video) { this._stop(); return; }
+      if (!video) { this._stopStream(); return; }
       video.srcObject = this.stream;
       await video.play();
       this._scan(video);
     } catch {
-      this._stop();
+      this._stopStream();
       if (!this.el) return;
       const errEl = this.el.querySelector('.qr-error-state') as HTMLElement | null;
       const video = this.el.querySelector('.qr-video') as HTMLElement | null;
       if (errEl) errEl.style.display = 'flex';
       if (video) video.style.display = 'none';
+    } finally {
+      this._starting = false;
     }
   }
 
@@ -131,9 +162,18 @@ export class QRScanner extends BaseComponent {
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
 
+    // Freeze watcher: FREEZE_CHECK ms'de bir kontrol, FREEZE_MS süredir frame yoksa restart
+    this._lastFrameMs = Date.now();
+    this._freezeTimer = setInterval(() => {
+      if (!this.stopped && Date.now() - this._lastFrameMs > FREEZE_MS) {
+        this._restartCamera();
+      }
+    }, FREEZE_CHECK);
+
     const tick = () => {
       if (this.stopped) return;
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        this._lastFrameMs = Date.now(); // canlı frame — freeze timer'ı sıfırla
         canvas.width  = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0);
@@ -152,11 +192,14 @@ export class QRScanner extends BaseComponent {
     this.raf = requestAnimationFrame(tick);
   }
 
+  // Scanner tamamen kapatılıyor (başarı veya kullanıcı iptali)
   private _stop() {
     this.stopped = true;
-    if (this.raf !== null) cancelAnimationFrame(this.raf);
-    this.stream?.getTracks().forEach((t) => t.stop());
-    this.stream = null;
+    this._stopStream();
+    if (this._visibilityHandler) {
+      document.removeEventListener('visibilitychange', this._visibilityHandler);
+      this._visibilityHandler = null;
+    }
   }
 
   unmount() {
@@ -171,7 +214,6 @@ export class QRScanner extends BaseComponent {
         ()      => resolve(null),
         type,
       );
-      // body'ye mount et — parent transform/overflow fixed'ı etkilemesin
       scanner.mount(document.body);
     });
   }

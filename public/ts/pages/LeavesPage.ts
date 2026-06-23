@@ -273,6 +273,101 @@ Alpine.data('leavesPage', () => ({
     } catch (err: unknown) { Toast.show(err instanceof Error ? err.message : 'Hata', 'error'); }
   },
 
+  // ── Admin/Müdür: Geçmiş İzin Modalı ──
+  async openBackdateModal() {
+    let users: { id: string; name: string }[] = [];
+    try {
+      const res = await api.get<{ users: { id: string; name: string }[] }>('/api/v1/users?perPage=200');
+      users = res.users ?? [];
+    } catch { Toast.show('Personel listesi alınamadı', 'error'); return; }
+
+    const today = new Date().toISOString().split('T')[0];
+    const I_CLO = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'pw-overlay';
+    overlay.innerHTML = `
+      <div class="lv-bd-modal">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <h3 style="font-size:18px;font-weight:800;color:var(--text-primary)">Geçmiş İzin Girişi</h3>
+          <button id="bd-close" style="background:transparent;border:none;cursor:pointer;color:var(--color-muted);padding:4px">${I_CLO}</button>
+        </div>
+        <p style="font-size:12px;color:var(--color-muted);margin-bottom:16px">
+          Geçmişe dönük izin anında onaylanır ve izin bakiyesinden düşülür.
+        </p>
+        <form id="bd-form" style="display:flex;flex-direction:column;gap:14px">
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label class="field-label">Personel</label>
+            <select class="field-input" name="userId" required style="color-scheme:dark">
+              <option value="">Personel seçin...</option>
+              ${users.map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label class="field-label">Başlangıç</label>
+              <input class="field-input" name="start_date" type="date" value="${today}"
+                style="color-scheme:dark" required />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label class="field-label">Bitiş</label>
+              <input class="field-input" name="end_date" type="date" value="${today}"
+                style="color-scheme:dark" required />
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label class="field-label">İzin Türü</label>
+            <select class="field-input" name="type" style="color-scheme:dark">
+              <option value="annual">Yıllık İzin</option>
+              <option value="report">Rapor</option>
+              <option value="excuse">Mazeret İzni</option>
+            </select>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label class="field-label">Açıklama</label>
+            <input class="field-input" name="reason" type="text"
+              placeholder="İzin nedeni..." required />
+          </div>
+
+          <button type="submit" id="bd-submit" class="btn btn-primary" style="margin-top:4px">
+            Kaydet ve Onayla
+          </button>
+        </form>
+      </div>`;
+
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector('#bd-close')?.addEventListener('click', close);
+
+    const form = overlay.querySelector('#bd-form') as HTMLFormElement;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd  = new FormData(form);
+      const btn = overlay.querySelector<HTMLButtonElement>('#bd-submit')!;
+      btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+      try {
+        await api.post('/api/v1/leaves/backdate', {
+          userId:     fd.get('userId'),
+          start_date: fd.get('start_date'),
+          end_date:   fd.get('end_date'),
+          type:       fd.get('type'),
+          reason:     fd.get('reason'),
+        });
+        Toast.show('Geçmiş izin kaydedildi ve onaylandı', 'success');
+        close();
+        await this.loadLeaves();
+      } catch (err: unknown) {
+        Toast.show(err instanceof Error ? err.message : 'Kaydedilemedi', 'error');
+        btn.disabled = false; btn.textContent = 'Kaydet ve Onayla';
+      }
+    });
+  },
+
   // ── Admin: Edit Modal (overlay DOM) ──
   openEditModal(id: string) {
     const row = this.rows.find((r: LeaveRow) => r.id === id);
@@ -437,17 +532,28 @@ export class LeavesPage extends BasePage {
             <span style="color:var(--accent)">${I_FILE}</span>
             İzin ve Fazla Mesai Yönetimi
           </h2>
-          <button
-            x-show="isAdminOrMudur"
-            x-cloak
-            class="mv-excel-btn"
-            style="flex-shrink:0"
-            :disabled="excelLoading"
-            @click="downloadExcel()"
-          >
-            ${I_DOWN}
-            <span x-text="excelLoading ? 'İndiriliyor...' : 'İzin Raporu İndir'"></span>
-          </button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button
+              x-show="isAdminOrMudur"
+              x-cloak
+              class="btn btn-ghost"
+              style="font-size:13px;font-weight:700;border:1px solid rgba(249,115,22,0.35);color:var(--accent);padding:7px 14px;border-radius:10px"
+              @click="openBackdateModal()"
+            >
+              ${I_PLUS} Geçmiş İzin Ekle
+            </button>
+            <button
+              x-show="isAdminOrMudur"
+              x-cloak
+              class="mv-excel-btn"
+              style="flex-shrink:0"
+              :disabled="excelLoading"
+              @click="downloadExcel()"
+            >
+              ${I_DOWN}
+              <span x-text="excelLoading ? 'İndiriliyor...' : 'İzin Raporu İndir'"></span>
+            </button>
+          </div>
         </div>
 
         <!-- 4 İstatistik Kartı -->

@@ -15,6 +15,7 @@ interface Settings {
   rounding_threshold_minutes: number;
   shift_start: string;
   shift_end: string;
+  qr_rotate_interval_hours: number;
 }
 
 interface QRResponse {
@@ -154,17 +155,17 @@ Alpine.data('settingsPage', () => ({
   },
 
   async _drawQR(value: string) {
-    // $refs erişimi için Alpine context'te this.$refs kullanılır
-    // render'dan sonra canvas referansı hazır olur
     await this.$nextTick();
-    const canvas = (this.$refs as Record<string, HTMLElement>)['qrCanvas'] as HTMLCanvasElement | null;
+    // $refs fallback: x-if içinde bazen $refs dolmayabilir
+    const canvas = (
+      (this.$refs as Record<string, HTMLElement | undefined>)['qrCanvas']
+      ?? (this.$el as HTMLElement | undefined)?.querySelector?.('canvas')
+    ) as HTMLCanvasElement | null;
     if (!canvas) return;
-    try {
-      await QRCode.toCanvas(canvas, value, {
-        width: 220, margin: 2,
-        color: { dark: '#000000', light: '#ffffff' },
-      });
-    } catch { /* ignore */ }
+    await QRCode.toCanvas(canvas, value, {
+      width: 220, margin: 2,
+      color: { dark: '#000000', light: '#ffffff' },
+    });
   },
 
   _startCountdown(initial: number) {
@@ -193,7 +194,10 @@ Alpine.data('settingsPage', () => ({
   },
 
   printQR() {
-    const canvas = (this.$refs as Record<string, HTMLElement>)['qrCanvas'] as HTMLCanvasElement | null;
+    const canvas = (
+      (this.$refs as Record<string, HTMLElement | undefined>)['qrCanvas']
+      ?? (this.$el as HTMLElement | undefined)?.querySelector?.('canvas')
+    ) as HTMLCanvasElement | null;
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
     const win = window.open('', '_blank');
@@ -211,11 +215,25 @@ Alpine.data('settingsPage', () => ({
   },
 
   async regenSecret() {
+    const ok = await Modal.confirm({
+      title: 'QR Kodu Sıfırla',
+      content: 'Mevcut QR kodu geçersiz hale gelir. Yeni kodu tarayıcıya asana kadar personel giriş yapamaz. Devam edilsin mi?',
+      confirmText: 'Evet, Sıfırla',
+      cancelText: 'Vazgeç',
+      danger: true,
+    });
+    if (!ok) return;
     try {
-      const res = await api.post<{ success: boolean; secret: string }>('/api/v1/settings/generate-secret', {});
+      const res = await api.post<{ success: boolean; secret: string }>('/api/v1/settings/rotate-qr', {});
       if (this.settings) this.settings = { ...this.settings, qr_secret: res.secret };
-      Toast.show('Yeni QR sırrı üretildi — Ayarları kaydetmeyi unutmayın!', 'warning');
-    } catch { Toast.show('Sır üretilemedi', 'error'); }
+      const qrRes = await api.get<QRResponse>('/api/v1/attendance/qr');
+      await this._drawQR(qrRes.value);
+      this._startCountdown(qrRes.expiresIn);
+      this._startQRRefresh(); // timer'ı sıfırla — yeni secret ile başlasın
+      Toast.show('QR kodu sıfırlandı', 'success');
+    } catch (err: unknown) {
+      Toast.show(err instanceof Error ? err.message : 'Sıfırlanamadı', 'error');
+    }
   },
 
   async saveSettings(e: Event) {
@@ -226,6 +244,7 @@ Alpine.data('settingsPage', () => ({
     fd.forEach((v, k) => { data[k] = v || null; });
     if (data.work_days_per_week)         data.work_days_per_week         = Number(data.work_days_per_week);
     if (data.rounding_threshold_minutes) data.rounding_threshold_minutes = Number(data.rounding_threshold_minutes);
+    if (data.qr_rotate_interval_hours !== undefined) data.qr_rotate_interval_hours = Number(data.qr_rotate_interval_hours);
     try {
       await api.patch('/api/v1/settings', data);
       Toast.show('Ayarlar kaydedildi', 'success');
@@ -400,6 +419,15 @@ export class SettingsPage extends BasePage {
                         <input class="field-input" name="qr_secret"
                                :value="settings?.qr_secret ?? ''"
                                placeholder="QR gizli anahtarı" />
+                      </div>
+                      <div class="field-group">
+                        <label class="field-label">QR Otomatik Yenileme</label>
+                        <select class="field-input" name="qr_rotate_interval_hours">
+                          <option value="0"  :selected="(settings?.qr_rotate_interval_hours ?? 0) === 0">Manuel (Otomatik Yok)</option>
+                          <option value="6"  :selected="settings?.qr_rotate_interval_hours === 6">Her 6 Saatte Bir</option>
+                          <option value="12" :selected="settings?.qr_rotate_interval_hours === 12">Her 12 Saatte Bir</option>
+                          <option value="24" :selected="settings?.qr_rotate_interval_hours === 24">Her 24 Saatte Bir</option>
+                        </select>
                       </div>
                     </div>
                   </div>
