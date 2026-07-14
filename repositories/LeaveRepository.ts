@@ -41,7 +41,9 @@ export class LeaveRepository extends BaseRepository<LeaveRow> {
     }
 
     const where = conditions.join(' AND ');
-    const base  = `FROM leave_requests lr WHERE ${where}`;
+    const base  = `FROM leave_requests lr
+      LEFT JOIN users u ON u.id = lr.user_id AND u.is_deleted = false
+      WHERE ${where}`;
 
     const { rows: countRows } = await this.db.query<{ count: string }>(
       `SELECT COUNT(*) ${base}`, params
@@ -50,7 +52,7 @@ export class LeaveRepository extends BaseRepository<LeaveRow> {
 
     params.push(limit, offset);
     const { rows } = await this.db.query<LeaveRow>(
-      `SELECT lr.* ${base} ORDER BY lr.created_at DESC
+      `SELECT lr.*, u.avatar_path ${base} ORDER BY lr.created_at DESC
        LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params
     );

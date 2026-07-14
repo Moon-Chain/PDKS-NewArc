@@ -1,6 +1,6 @@
 // PDKS Service Worker — PWA + Offline Desteği
-const CACHE_NAME    = 'pdks-build-352549f8';  // holiday modal fix + modal z-index → v8
-const JS_CACHE      = 'pdks-js-352549f8';
+const CACHE_NAME    = 'pdks-build-4e8b5d60';  // holiday modal fix + modal z-index → v8
+const JS_CACHE      = 'pdks-js-4e8b5d60';
 
 // Sadece JS chunk'ları ve ikonlar pre-cache'lenir
 // CSS: her zaman ağdan çekilir (geliştirme sürecinde değişiyor)

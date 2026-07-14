@@ -5,9 +5,12 @@ import { state } from '../core/StateManager.js';
 import { Toast } from '../components/Toast.js';
 import { Modal } from '../components/Modal.js';
 import { getHolidaySet, preload } from '../core/HolidayCache.js';
+import { bus } from '../core/EventBus.js';
+import { errMsg } from '../core/errMsg.js';
+import { alpineAvatar } from '../core/Avatar.js';
 
 interface LeaveRow {
-  id: string; user_id: string; user_name: string;
+  id: string; user_id: string; user_name: string; avatar_path?: string | null;
   start_date: string; end_date: string; days: number;
   reason: string; type: 'annual' | 'report' | 'excuse';
   status: 'pending' | 'approved' | 'rejected'; created_at: string;
@@ -85,16 +88,23 @@ Alpine.data('leavesPage', () => ({
   excelLoading:    false,
 
   // ── İnit ──
+  _sseUnsub: null as (() => void) | null,
+
   async init() {
     this.profile  = state.get('profile') as Profile | null;
     this.leaveBal = this.profile?.leave_balance ?? 0;
-    // Mevcut yıl ve gelecek yıl tatillerini önceden yükle
     const cy = new Date().getFullYear();
     await Promise.all([
       preload([cy, cy + 1]),
       this.loadLeaves(),
       this.loadOvertime(),
     ]);
+    // Admin onayladığında personel bakiyesi SSE ile güncellenir
+    this._sseUnsub = bus.on('sse:notification', () => { this.loadLeaves(); }) as () => void;
+  },
+
+  destroy() {
+    if (this._sseUnsub) { this._sseUnsub(); this._sseUnsub = null; }
   },
 
   // ── Computed ──
@@ -138,11 +148,18 @@ Alpine.data('leavesPage', () => ({
   async loadLeaves() {
     this.loadingRows = true;
     try {
-      const res = await api.get<{ rows: LeaveRow[]; total: number }>('/api/v1/leaves?limit=50');
+      const [res, profileRes] = await Promise.all([
+        api.get<{ rows: LeaveRow[]; total: number }>('/api/v1/leaves?limit=50'),
+        api.get<Profile>('/api/v1/auth/me').catch(() => null),
+      ]);
       this.rows         = res.rows ?? [];
       this.pendingCount = this.rows.filter(r => r.status === 'pending').length;
+      if (profileRes) {
+        this.leaveBal = (profileRes as Profile).leave_balance ?? this.leaveBal;
+        state.set('profile', profileRes);
+      }
     } catch (err: unknown) {
-      Toast.show(err instanceof Error ? err.message : 'Yüklenemedi', 'error');
+      Toast.show(errMsg(err, 'İzin listesi yüklenemedi'), 'error');
     } finally {
       this.loadingRows = false;
     }
@@ -199,7 +216,7 @@ Alpine.data('leavesPage', () => ({
       this.form.type      = 'annual';
       await this.loadLeaves();
     } catch (err: unknown) {
-      Toast.show(err instanceof Error ? err.message : 'Gönderilemedi', 'error');
+      Toast.show(errMsg(err, 'İzin talebi gönderilemedi'), 'error');
     } finally {
       this.leaveSubmitting = false;
     }
@@ -222,7 +239,7 @@ Alpine.data('leavesPage', () => ({
       this.otForm.description = '';
       await this.loadOvertime();
     } catch (err: unknown) {
-      Toast.show(err instanceof Error ? err.message : 'Gönderilemedi', 'error');
+      Toast.show(errMsg(err, 'Mesai talebi gönderilemedi'), 'error');
     } finally {
       this.otSubmitting = false;
     }
@@ -557,29 +574,41 @@ export class LeavesPage extends BasePage {
         </div>
 
         <!-- 4 İstatistik Kartı -->
-        <div class="lv-stats-grid">
-          <div class="lv-stat-card">
-            <p class="lv-stat-label">Yıllık İzin</p>
-            <p class="lv-stat-val" style="color:var(--accent)" x-text="leaveBal"></p>
-            <p class="lv-stat-sub">Kalan Gün</p>
+        <!-- Stats — yükleniyor skeleton -->
+        <template x-if="loadingRows">
+          <div class="lv-stats-grid">
+            <div class="lv-stat-card"><div class="skeleton" style="height:16px;width:60px;border-radius:6px;margin:0 auto 8px"></div><div class="skeleton" style="height:36px;width:48px;border-radius:8px;margin:0 auto 8px"></div><div class="skeleton" style="height:12px;width:72px;border-radius:5px;margin:0 auto"></div></div>
+            <div class="lv-stat-card"><div class="skeleton" style="height:16px;width:60px;border-radius:6px;margin:0 auto 8px"></div><div class="skeleton" style="height:36px;width:48px;border-radius:8px;margin:0 auto 8px"></div><div class="skeleton" style="height:12px;width:72px;border-radius:5px;margin:0 auto"></div></div>
+            <div class="lv-stat-card"><div class="skeleton" style="height:16px;width:60px;border-radius:6px;margin:0 auto 8px"></div><div class="skeleton" style="height:36px;width:48px;border-radius:8px;margin:0 auto 8px"></div><div class="skeleton" style="height:12px;width:72px;border-radius:5px;margin:0 auto"></div></div>
+            <div class="lv-stat-card"><div class="skeleton" style="height:16px;width:60px;border-radius:6px;margin:0 auto 8px"></div><div class="skeleton" style="height:36px;width:48px;border-radius:8px;margin:0 auto 8px"></div><div class="skeleton" style="height:12px;width:72px;border-radius:5px;margin:0 auto"></div></div>
           </div>
-          <div class="lv-stat-card">
-            <p class="lv-stat-label">Bekleyen</p>
-            <p class="lv-stat-val" style="color:var(--text-primary)" x-text="pendingCount"></p>
-            <p class="lv-stat-sub">Onay Bekleyen</p>
+        </template>
+        <!-- Stats — yüklendi -->
+        <template x-if="!loadingRows">
+          <div class="lv-stats-grid">
+            <div class="lv-stat-card">
+              <p class="lv-stat-label">Yıllık İzin</p>
+              <p class="lv-stat-val" style="color:var(--accent)" x-text="leaveBal"></p>
+              <p class="lv-stat-sub">Kalan Gün</p>
+            </div>
+            <div class="lv-stat-card">
+              <p class="lv-stat-label">Bekleyen</p>
+              <p class="lv-stat-val" style="color:var(--text-primary)" x-text="pendingCount"></p>
+              <p class="lv-stat-sub">Onay Bekleyen</p>
+            </div>
+            <div class="lv-stat-card">
+              <p class="lv-stat-label">Onaylı Mesai</p>
+              <p class="lv-stat-val" style="color:#60a5fa" x-text="overtimes.filter(o => o.status === 'approved').reduce((a, o) => a + (o.hours||0), 0).toFixed(1)"></p>
+              <p class="lv-stat-sub">Saat</p>
+            </div>
+            <div class="lv-stat-card">
+              <p class="lv-stat-label" x-text="isPriv ? 'Yetkili' : 'Yönetici'"></p>
+              <p style="font-size:13px;font-weight:700;color:var(--text-primary)"
+                 x-text="isPriv ? 'Onay Verebilir' : 'Sistem Yöneticisi'"></p>
+              <p class="lv-stat-sub">Onay Makamı</p>
+            </div>
           </div>
-          <div class="lv-stat-card">
-            <p class="lv-stat-label">Fazla Mesai</p>
-            <p class="lv-stat-val" style="color:#60a5fa">0.0</p>
-            <p class="lv-stat-sub">Onaylı Saat</p>
-          </div>
-          <div class="lv-stat-card">
-            <p class="lv-stat-label" x-text="isPriv ? 'Yetkili' : 'Yönetici'"></p>
-            <p style="font-size:13px;font-weight:700;color:var(--text-primary)"
-               x-text="isPriv ? 'Onay Verebilir' : 'Sistem Yöneticisi'"></p>
-            <p class="lv-stat-sub">Onay Makamı</p>
-          </div>
-        </div>
+        </template>
 
         <!-- 2 Kolon: Sol Form / Sağ Liste -->
         <div class="lv-two-col">
@@ -713,7 +742,11 @@ export class LeavesPage extends BasePage {
                     <template x-for="row in rows" :key="row.id">
                       <div class="lv-item-card" style="margin-bottom:12px">
                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-                          <div>
+                          <div style="display:flex;align-items:center;gap:10px">
+                            <div class="lv-row-avatar" :style="row.avatar_path ? 'padding:0;overflow:hidden' : ''">
+                              ${alpineAvatar('row.avatar_path', 'row.user_name')}
+                            </div>
+                            <div>
                             <p style="font-weight:700;font-size:14px;color:var(--text-primary)" x-text="row.user_name"></p>
                             <p style="font-size:10px;color:var(--text-muted);margin-top:2px">
                               <span x-text="fmtDateRange(row.start_date, row.end_date)"></span>
@@ -722,6 +755,7 @@ export class LeavesPage extends BasePage {
                               &nbsp;·&nbsp;
                               <span x-text="typeLabel(row.type)"></span>
                             </p>
+                            </div><!-- /avatar inner -->
                           </div>
                           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
                             <template x-if="isAdmin">

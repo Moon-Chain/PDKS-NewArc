@@ -679,7 +679,7 @@ body[data-route="/qr"] .qr-canvas-wrap canvas { width: 340px !important; height:
   height: 100%; background: var(--accent); border-radius: 3px;
   transition: width 1s linear; width: 100%;
 }
-.qr-timer-text { font-size: var(--font-size-sm); font-weight: 700; color: var(--text-muted); min-width: 28px; text-align: right; }
+.qr-timer-text { font-size: var(--font-size-sm); font-weight: 700; color: var(--text-muted); width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
 .qr-display-hint { font-size: var(--font-size-xs); color: var(--text-muted); text-align: center; }
 
 /* ===== QR SCANNER ===== */
@@ -912,7 +912,7 @@ body[data-route="/qr"] .qr-canvas-wrap canvas { width: 340px !important; height:
 @media (max-width: 560px) {
   .ul-meta-row { flex-direction: column; align-items: flex-start; gap: 1px; }
   .ul-title-dot { display: none; }
-  .ul-title-text { letter-spacing: 0; text-transform: none; font-size: 11px; }
+  .ul-title-text { letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; }
   .ul-pid { font-size: 10px; }
   .ul-row { padding: 12px 12px; gap: 10px; }
   .ul-avatar { width: 36px; height: 36px; }
@@ -2603,6 +2603,14 @@ select.field-input { cursor: pointer; background-image: url("data:image/svg+xml,
 }
 
 /* Kart — PDKS-main: rounded-2xl border border-zinc-900 bg-zinc-900/10 p-4 space-y-3 group relative */
+/* Approval ve izin listesi avatar'ları */
+.ap-avatar, .lv-row-avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(249,115,22,0.15); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+
 .ap-card {
   border-radius: 20px;
   border: 1px solid rgba(255,255,255,0.07);

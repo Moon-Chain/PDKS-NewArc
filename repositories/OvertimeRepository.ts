@@ -25,19 +25,25 @@ export class OvertimeRepository extends BaseRepository<OvertimeRow> {
   }): Promise<{ rows: OvertimeRow[]; total: number }> {
     const offset = (page - 1) * limit;
     const params: unknown[] = [companyId];
-    const conds = ['company_id = $1', 'is_deleted = false'];
+    const conds = ['ot.company_id = $1', 'ot.is_deleted = false'];
 
-    if (userId)   { params.push(userId);   conds.push(`user_id = $${params.length}`); }
-    if (managerId){ params.push(managerId); conds.push(`manager_id = $${params.length}`); }
-    if (status && status !== 'all') { params.push(status); conds.push(`status = $${params.length}`); }
+    if (userId)   { params.push(userId);   conds.push(`ot.user_id = $${params.length}`); }
+    if (managerId){ params.push(managerId); conds.push(`ot.manager_id = $${params.length}`); }
+    if (status && status !== 'all') { params.push(status); conds.push(`ot.status = $${params.length}`); }
 
     const where = conds.join(' AND ');
-    const { rows: cr } = await this.db.query<{count:string}>(`SELECT COUNT(*) FROM overtime_requests WHERE ${where}`, params);
+    const { rows: cr } = await this.db.query<{count:string}>(
+      `SELECT COUNT(*) FROM overtime_requests ot WHERE ${where}`, params
+    );
     const total = parseInt(cr[0].count);
 
     params.push(limit, offset);
     const { rows } = await this.db.query<OvertimeRow>(
-      `SELECT * FROM overtime_requests WHERE ${where} ORDER BY created_at DESC
+      `SELECT ot.*, u.avatar_path
+       FROM overtime_requests ot
+       LEFT JOIN users u ON u.id = ot.user_id AND u.is_deleted = false
+       WHERE ${where}
+       ORDER BY ot.created_at DESC
        LIMIT $${params.length-1} OFFSET $${params.length}`, params
     );
     return { rows, total };

@@ -57,6 +57,21 @@ Alpine.data('settingsPage', () => ({
   _qrTimer:     null as ReturnType<typeof setInterval> | null,
   _qrCountdown: null as ReturnType<typeof setInterval> | null,
 
+  // QR gizli yönlendirme sayacı
+  _qrTapCount: 0,
+  _qrTapTimer: null as ReturnType<typeof setTimeout> | null,
+
+  _onQRTap() {
+    this._qrTapCount++;
+    if (this._qrTapTimer) clearTimeout(this._qrTapTimer);
+    if (this._qrTapCount >= 10) {
+      this._qrTapCount = 0;
+      window.location.href = '/qr';
+      return;
+    }
+    this._qrTapTimer = setTimeout(() => { this._qrTapCount = 0; }, 2000);
+  },
+
   get year(): number { return new Date().getFullYear(); },
 
   // Yıl listesi — mevcut yılın etrafında 3 yıl
@@ -330,7 +345,7 @@ export class SettingsPage extends BasePage {
 
             <!-- Sol: QR Panel -->
             <div class="qr-panel">
-              <div class="qr-panel-canvas-wrap">
+              <div class="qr-panel-canvas-wrap" @click="_onQRTap()">
                 <canvas x-ref="qrCanvas"></canvas>
               </div>
               <div class="qr-panel-info">

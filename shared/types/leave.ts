@@ -3,6 +3,7 @@ export interface LeaveRow {
   company_id:      string;
   user_id:         string;
   user_name:       string;
+  avatar_path:     string | null;
   manager_id:      string;
   start_date:      string;
   end_date:        string;

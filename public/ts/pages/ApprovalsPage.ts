@@ -3,12 +3,18 @@ import { BasePage } from '../core/BasePage.js';
 import { api } from '../core/ApiClient.js';
 import { state } from '../core/StateManager.js';
 import { Toast } from '../components/Toast.js';
+import { errMsg } from '../core/errMsg.js';
+import { alpineAvatar } from '../core/Avatar.js';
 
 interface LeaveRow {
-  id: string; user_name: string; start_date: string; end_date: string;
+  id: string; user_name: string; avatar_path?: string | null;
+  start_date: string; end_date: string;
   days: number; reason: string; type: string; status: string;
 }
-interface OTRow { id: string; user_name: string; date: string; hours: number; description: string | null; }
+interface OTRow {
+  id: string; user_name: string; avatar_path?: string | null;
+  date: string; hours: number; description: string | null;
+}
 interface ManualRow { id: string; user_name: string; type: 'in' | 'out'; timestamp: string; ip_address: string | null; }
 
 const TYPE_LABELS: Record<string, string> = { annual: 'Yıllık İzin', report: 'Rapor', excuse: 'Mazeret' };
@@ -74,7 +80,7 @@ Alpine.data('approvalsPage', () => ({
       await api.patch(`/api/v1/leaves/${id}/approve`);
       this.leaves = this.leaves.filter(r => r.id !== id);
       Toast.show('Talep onaylandı', 'success');
-    } catch (err: unknown) { Toast.show(err instanceof Error ? err.message : 'Hata', 'error'); }
+    } catch (err: unknown) { Toast.show(errMsg(err, 'İzin onaylanamadı'), 'error'); }
   },
 
   async rejectLeave(id: string) {
@@ -82,7 +88,7 @@ Alpine.data('approvalsPage', () => ({
       await api.patch(`/api/v1/leaves/${id}/reject`);
       this.leaves = this.leaves.filter(r => r.id !== id);
       Toast.show('Talep reddedildi', 'success');
-    } catch (err: unknown) { Toast.show(err instanceof Error ? err.message : 'Hata', 'error'); }
+    } catch (err: unknown) { Toast.show(errMsg(err, 'İzin reddedilemedi'), 'error'); }
   },
 
   async approveOT(id: string) {
@@ -90,7 +96,7 @@ Alpine.data('approvalsPage', () => ({
       await api.patch(`/api/v1/overtime/${id}/approve`);
       this.overtimes = this.overtimes.filter(r => r.id !== id);
       Toast.show('Mesai onaylandı', 'success');
-    } catch (err: unknown) { Toast.show(err instanceof Error ? err.message : 'Hata', 'error'); }
+    } catch (err: unknown) { Toast.show(errMsg(err, 'Mesai onaylanamadı'), 'error'); }
   },
 
   async rejectOT(id: string) {
@@ -98,7 +104,7 @@ Alpine.data('approvalsPage', () => ({
       await api.patch(`/api/v1/overtime/${id}/reject`);
       this.overtimes = this.overtimes.filter(r => r.id !== id);
       Toast.show('Mesai reddedildi', 'success');
-    } catch (err: unknown) { Toast.show(err instanceof Error ? err.message : 'Hata', 'error'); }
+    } catch (err: unknown) { Toast.show(errMsg(err, 'Mesai reddedilemedi'), 'error'); }
   },
 
   async approveManual(id: string) {
@@ -106,7 +112,7 @@ Alpine.data('approvalsPage', () => ({
       await api.patch(`/api/v1/attendance/${id}/approve-manual`);
       this.manuals = this.manuals.filter(r => r.id !== id);
       Toast.show('Kayıt onaylandı', 'success');
-    } catch (err: unknown) { Toast.show(err instanceof Error ? err.message : 'Hata', 'error'); }
+    } catch (err: unknown) { Toast.show(errMsg(err, 'Kayıt onaylanamadı'), 'error'); }
   },
 
   async rejectManual(id: string) {
@@ -114,7 +120,7 @@ Alpine.data('approvalsPage', () => ({
       await api.delete(`/api/v1/attendance/${id}`);
       this.manuals = this.manuals.filter(r => r.id !== id);
       Toast.show('Kayıt reddedildi', 'success');
-    } catch (err: unknown) { Toast.show(err instanceof Error ? err.message : 'Hata', 'error'); }
+    } catch (err: unknown) { Toast.show(errMsg(err, 'Kayıt reddedilemedi'), 'error'); }
   },
 }));
 
@@ -163,11 +169,16 @@ export class ApprovalsPage extends BasePage {
                       <template x-for="r in leaves" :key="r.id">
                         <div class="ap-card">
                           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-                            <div>
-                              <p style="font-weight:700;font-size:14px" x-text="r.user_name"></p>
-                              <p style="font-size:10px;color:var(--color-muted);margin-top:2px"
-                                 x-text="fmtDate(r.start_date) + ' - ' + fmtDate(r.end_date) + ' (' + r.days + ' Gün)'"></p>
-                              <p style="font-size:10px;color:var(--color-muted)" x-text="typeLabel(r.type)"></p>
+                            <div style="display:flex;align-items:center;gap:10px">
+                              <div class="ap-avatar" :style="r.avatar_path ? 'padding:0;overflow:hidden' : ''">
+                                ${alpineAvatar('r.avatar_path', 'r.user_name')}
+                              </div>
+                              <div>
+                                <p style="font-weight:700;font-size:14px" x-text="r.user_name"></p>
+                                <p style="font-size:10px;color:var(--color-muted);margin-top:2px"
+                                   x-text="fmtDate(r.start_date) + ' - ' + fmtDate(r.end_date) + ' (' + r.days + ' Gün)'"></p>
+                                <p style="font-size:10px;color:var(--color-muted)" x-text="typeLabel(r.type)"></p>
+                              </div>
                             </div>
                           </div>
                           <p x-show="r.reason" style="font-size:12px;color:#a1a1aa;font-style:italic" x-text="'&quot;' + r.reason + '&quot;'"></p>
@@ -196,10 +207,15 @@ export class ApprovalsPage extends BasePage {
                     <div>
                       <template x-for="r in overtimes" :key="r.id">
                         <div class="ap-card">
-                          <div>
-                            <p style="font-weight:700;font-size:14px" x-text="r.user_name"></p>
-                            <p style="font-size:10px;color:var(--color-muted);margin-top:2px"
-                               x-text="fmtDate(r.date) + ' · ' + r.hours + ' Saat'"></p>
+                          <div style="display:flex;align-items:center;gap:10px">
+                            <div class="ap-avatar" :style="r.avatar_path ? 'padding:0;overflow:hidden' : ''">
+                              ${alpineAvatar('r.avatar_path', 'r.user_name')}
+                            </div>
+                            <div>
+                              <p style="font-weight:700;font-size:14px" x-text="r.user_name"></p>
+                              <p style="font-size:10px;color:var(--color-muted);margin-top:2px"
+                                 x-text="fmtDate(r.date) + ' · ' + r.hours + ' Saat'"></p>
+                            </div>
                           </div>
                           <p x-show="r.description" style="font-size:12px;color:#a1a1aa;font-style:italic" x-text="'&quot;' + r.description + '&quot;'"></p>
                           <div style="display:flex;gap:8px;padding-top:8px">

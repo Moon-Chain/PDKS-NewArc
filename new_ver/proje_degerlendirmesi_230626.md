@@ -24,11 +24,7 @@ Kullanıcı Deneyimi:
 
 Şifre sıfırlama yok — admin DB'ye elle girmek zorunda
 Onboarding yok — yeni kullanıcı ne yapacağını bilmiyor
-İzin bakiyesi onay sonrası anında güncellenmiyor (sayfa yenilemesi lazım)
 Arama/filtre sadece hareketlerde var, izinlerde yok
-Loading state yetersiz bazı yerlerde — skeleton yerine boş ekran
-Hata mesajları çoğu yerde generic — "Sunucu hatası" yerine bağlam yok
-Profil fotoğrafı avatar_path DB'de var ama hiçbir yerde gösterilmiyor
 İstatistik sayfası yok — kişinin aylık devam grafiği, yıllık özeti yok
 Yazılım:
 

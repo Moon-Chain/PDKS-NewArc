@@ -144,10 +144,9 @@ export class ExcelService {
       const headerRow = ws.lastRow!;
       headerRow.height = 20;
       headerRow.eachCell(cell => {
-        cell.font  = { bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.fill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF18181B' } };
+        cell.font  = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+        cell.fill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEA6C0A' } };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = { bottom: { style: 'thin', color: { argb: 'FFF97316' } } };
       });
 
       let rowIdx = 0;
@@ -285,8 +284,8 @@ export class ExcelService {
     ws.addRow(['Personel', 'Başlangıç', 'Bitiş', 'Gün', 'Tür', 'Durum', 'Açıklama']);
     const headerRow = ws.lastRow!;
     headerRow.eachCell(cell => {
-      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF18181B' } };
+      cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEA6C0A' } };
       cell.alignment = { horizontal: 'center' };
     });
 

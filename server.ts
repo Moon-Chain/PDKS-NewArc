@@ -12,6 +12,7 @@ import { requestId } from './middleware/requestId.js';
 import { globalLimiter } from './middleware/rateLimit.js';
 import { AppError } from './core/AppError.js';
 import { db } from './db/connection.js';
+import { apiLogger } from './middleware/apiLogger.js';
 
 import authRoute          from './routes/v1/auth.js';
 import attendanceRoute    from './routes/v1/attendance.js';
@@ -101,6 +102,7 @@ app.use(requestId);
 app.use((_req, res, next) => { res.setHeader('ngrok-skip-browser-warning', 'true'); next(); });
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
+app.use(apiLogger);
 
 // Erişim logu
 app.use((req, res, next) => {

@@ -5,6 +5,7 @@ import { state } from '../core/StateManager.js';
 import { Toast } from '../components/Toast.js';
 import { Modal } from '../components/Modal.js';
 import { getHolidayNamesSync, preload } from '../core/HolidayCache.js';
+import { renderAvatar, alpineAvatar } from '../core/Avatar.js';
 
 interface AttendanceRow {
   id: string; user_id: string; user_name: string;
@@ -553,9 +554,14 @@ Alpine.data('movementsPage', () => ({
     overlay.innerHTML = `
       <div class="mv-day-modal">
         <div class="mv-day-modal-header">
-          <div>
-            <h3 style="font-size:18px;font-weight:800;color:var(--text-primary)">${dateLabel}</h3>
-            <p style="font-size:12px;color:var(--text-muted);margin-top:2px">${personName} Hareketleri</p>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="mv-user-avatar" style="width:40px;height:40px;flex-shrink:0;${u?.avatar_path ? 'padding:0;overflow:hidden' : ''}">
+              ${renderAvatar(personName, u?.avatar_path, 40)}
+            </div>
+            <div>
+              <h3 style="font-size:18px;font-weight:800;color:var(--text-primary)">${dateLabel}</h3>
+              <p style="font-size:12px;color:var(--text-muted);margin-top:2px">${personName} Hareketleri</p>
+            </div>
           </div>
           <button class="mv-day-close" id="mv-day-close">
             <span style="color:var(--text-muted)">${I_X}</span>
@@ -848,7 +854,14 @@ export class MovementsPage extends BasePage {
                   <template x-for="u in group.users" :key="u.id">
                     <button class="mv-user-card" @click="selectUser(u.id)">
                       <div style="display:flex;align-items:center;gap:12px">
-                        <div class="mv-user-avatar" x-text="u.name[0]?.toUpperCase() ?? '?'"></div>
+                        <div class="mv-user-avatar" :style="u.avatar_path ? 'padding:0;overflow:hidden' : ''">
+                          <template x-if="u.avatar_path">
+                            <img :src="u.avatar_path" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" />
+                          </template>
+                          <template x-if="!u.avatar_path">
+                            <span x-text="u.name[0]?.toUpperCase() ?? '?'"></span>
+                          </template>
+                        </div>
                         <div style="text-align:left">
                           <p style="font-weight:700;font-size:14px;color:var(--text-primary)" x-text="u.name"></p>
                           <p style="font-size:12px;color:var(--text-muted)" x-text="u.personnel_id"></p>
@@ -916,7 +929,9 @@ export class MovementsPage extends BasePage {
             <div class="mv-detail-header-card">
               <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
                 <div class="mv-detail-avatar"
-                  x-text="selectedUser ? selectedUser.name[0]?.toUpperCase() : '?'"></div>
+                  :style="selectedUser?.avatar_path ? 'padding:0;overflow:hidden' : ''">
+                  ${alpineAvatar('selectedUser?.avatar_path', 'selectedUser?.name')}
+                </div>
                 <div style="flex:1">
                   <h3 class="mv-detail-title"
                     x-text="selectedUser ? selectedUser.name : 'Giriş Çıkış Hareketlerim'"></h3>

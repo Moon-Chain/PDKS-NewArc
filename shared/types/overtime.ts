@@ -3,6 +3,7 @@ export interface OvertimeRow {
   company_id:  string;
   user_id:     string;
   user_name:   string;
+  avatar_path: string | null;
   manager_id:  string;
   date:        string;
   hours:       number;

@@ -713,16 +713,26 @@ var EventStream = class {
     this.es = null;
     this.retryDelay = 3e3;
     this.maxRetry = 3e4;
+    this._stopped = true;
+    this._retryTimer = null;
   }
   connect() {
     if (this.es) return;
+    this._stopped = false;
     this._open();
   }
   disconnect() {
+    this._stopped = true;
+    if (this._retryTimer) {
+      clearTimeout(this._retryTimer);
+      this._retryTimer = null;
+    }
     this.es?.close();
     this.es = null;
+    this.retryDelay = 3e3;
   }
   _open() {
+    if (this._stopped) return;
     this.es = new EventSource("/api/v1/events", { withCredentials: true });
     this.es.addEventListener("connected", () => {
       this.retryDelay = 3e3;
@@ -743,8 +753,9 @@ var EventStream = class {
     this.es.onerror = () => {
       this.es?.close();
       this.es = null;
+      if (this._stopped) return;
       bus.emit("sse:disconnected", null);
-      setTimeout(() => this._open(), this.retryDelay);
+      this._retryTimer = setTimeout(() => this._open(), this.retryDelay);
       this.retryDelay = Math.min(this.retryDelay * 1.5, this.maxRetry);
     };
   }
